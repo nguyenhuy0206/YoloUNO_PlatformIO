@@ -1,14 +1,16 @@
+#include "global.h"
 #include "dht_anomaly_model.h"
-#include <DHT20.h>
 
 #include <TensorFlowLite_ESP32.h>
-
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
+#include "led_blinky.h"
+#include "neo_blinky.h"
+#include "temp_humi_monitor.h"
 
 
 // Globals, for the convenience of one-shot setup.
@@ -24,7 +26,7 @@ uint8_t tensor_arena[kTensorArenaSize];
 
 
 void setup() {
-Serial.begin(115200);
+  Serial.begin(115200);
   Serial.println("TensorFlow Lite Init....");
   static tflite::MicroErrorReporter micro_error_reporter;
   error_reporter = &micro_error_reporter;
@@ -52,6 +54,10 @@ Serial.begin(115200);
 
 
   Serial.println("TensorFlow Lite Micro initialized on ESP32.");
+  xTaskCreate( led_blinky, "Task LED Blink" ,2048  ,NULL  ,2 , NULL);
+  xTaskCreate( neo_blinky, "Task NEO Blink" ,2048  ,NULL  ,2 , NULL);
+  xTaskCreate( temp_humi_monitor, "Task TEMP HUMI Monitor" ,2048  ,NULL  ,2 , NULL);
+  
 }
 
 void loop() {
@@ -59,7 +65,7 @@ void loop() {
   // Prepare input data (e.g., sensor readings)
   // For a simple example, let's assume a single float input
   input->data.f[0] = 20.5; 
-  input->data.f[1] = 60.5; 
+  input->data.f[1] = 80.5; 
 
   // Run inference
   TfLiteStatus invoke_status = interpreter->Invoke();
