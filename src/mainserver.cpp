@@ -4,11 +4,7 @@ bool led1_state = false;
 bool led2_state = false;
 bool isAPMode = true;
 
-
-
-
 WebServer server(80);
-
 
 String ssid = "ESP32-AP";
 String password = "12345678";
@@ -119,10 +115,12 @@ void handleToggle() {
   int led = server.arg("led").toInt();
   if (led == 1) {
     led1_state = !led1_state;
-    digitalWrite(LED1_PIN, led1_state);
+    //TODO: Control your LED1
+    //digitalWrite(LED1_PIN, led1_state);
   } else if (led == 2) {
     led2_state = !led2_state;
-    digitalWrite(LED2_PIN, led2_state);
+    //TODO: Control your LED2
+    //digitalWrite(LED2_PIN, led2_state);
   }
   server.send(200, "application/json", "{\"led1\":\"" + String(led1_state ? "ON":"OFF") + "\",\"led2\":\"" + String(led2_state ? "ON":"OFF") + "\"}");
 }
