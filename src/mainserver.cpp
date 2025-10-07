@@ -198,6 +198,8 @@ void main_server_task(void *pvParameters){
         Serial.println(WiFi.localIP());
         isWifiConnected = true; //Internet access
 
+        xSemaphoreGive(xBinarySemaphoreInternet);
+
         isAPMode = false;
         connecting = false;
          

@@ -16,7 +16,7 @@ void reconnect() {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect (username=token, password=empty)
     if (client.connect("ESP32Client", coreIOT_Token, NULL)) {
-      Serial.println("connected to ThingsBoard!");
+      Serial.println("connected to CoreIOT Server!");
       client.subscribe("v1/devices/me/rpc/request/+");
       Serial.println("Subscribed to v1/devices/me/rpc/request/+");
 
@@ -79,10 +79,21 @@ void setup_coreiot(){
   //Serial.print("Connecting to WiFi...");
   //WiFi.begin(wifi_ssid, wifi_password);
   //while (WiFi.status() != WL_CONNECTED) {
-  while (isWifiConnected == false) {
+  
+  // while (isWifiConnected == false) {
+  //   delay(500);
+  //   Serial.print(".");
+  // }
+
+  while(1){
+    if (xSemaphoreTake(xBinarySemaphoreInternet, portMAX_DELAY)) {
+      break;
+    }
     delay(500);
     Serial.print(".");
   }
+
+
   Serial.println(" Connected!");
 
   client.setServer(coreIOT_Server, mqttPort);
