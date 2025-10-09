@@ -1,11 +1,15 @@
-============================================================
 IoT RTOS Project - YoloUNO PlatformIO Extension
 ============================================================
 
-Course: Internet of Things Project
-Deadline: 27/11/2025
-Base Project: https://github.com/nhanksd85/YoloUNO_PlatformIO/tree/RTOS_Project
-Forked Repository: https://github.com/nguyenhuy0206/YoloUNO_PlatformIO
+**Course:** Internet of Things Project  
+**Deadline:** 27/11/2025  
+
+**Base Project:**  
+https://github.com/nhanksd85/YoloUNO_PlatformIO/tree/RTOS_Project  
+
+**Forked Repository:**  
+https://github.com/nguyenhuy0206/YoloUNO_PlatformIO
+
 
 ------------------------------------------------------------
 Team Members
@@ -56,6 +60,8 @@ Task 6: CoreIoT Cloud Integration
 ------------------------------------------------------------
 3. Project Structure
 ------------------------------------------------------------
+```text
+
 YoloUNO_PlatformIO/
 ├── src/
 │   ├── main.cpp
@@ -71,6 +77,7 @@ YoloUNO_PlatformIO/
 ├── doc/
 │   └── IoTProject_Report.pdf
 └── README.txt
+```
 
 ------------------------------------------------------------
 4. Development Environment
@@ -121,6 +128,4 @@ Based on the YoloUNO RTOS Project by Nhan KSD.
 All code rewritten and extended under group requirements.
 Special thanks to instructors and CoreIoT support team.
 
-============================================================
-End of README
 ============================================================
