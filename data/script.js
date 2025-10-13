@@ -184,3 +184,4 @@ window.addEventListener("load", () => {
         document.getElementById(id).classList.add("led-off");
     });
 });
+

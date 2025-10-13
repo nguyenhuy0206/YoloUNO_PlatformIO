@@ -2,148 +2,173 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Dashboard</title>
 
-    <!-- Open Sans Font -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@100;200;300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
-
-    <!-- Material Icons -->
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-
-    <!-- Custom CSS -->
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        body {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            grid-template-rows: 70px 1fr;
+            grid-template-areas:
+                "sidebar header"
+                "sidebar main";
+            margin: 0;
+            height: 100vh;
+            font-family: 'Open Sans', sans-serif;
+            color: #1e293b;
+            background: #f4f8fb;
+        }
+
+        header {
+            grid-area: header;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #sidebar {
+            grid-area: sidebar;
+            background: #0a1f44;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15);
+        }
+
+        #main-content {
+            grid-area: main;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-list-item {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: background 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-list-item:hover,
+        .sidebar-list-item.active {
+            background: #115f97;
+        }
+
+        .sidebar-list-item span {
+            font-size: 22px;
+        }
+
+        .header-left span {
+            font-size: 24px;
+            margin-right: 10px;
+            color: #074580;
+        }
+
+        .header-right span {
+            margin-left: 15px;
+            color: #074580;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
-    <div class="grid-container">
+    <!-- Sidebar -->
+    <aside id="sidebar">
+        <div class="sidebar-title">
+            <span class="material-icons-outlined">memory</span> IOT LAB
+        </div>
+        <ul class="sidebar-list">
+            <li class="sidebar-list-item active" data-page="dashboard.html">
+                <span class="material-icons-outlined">dashboard</span> Dashboard
+            </li>
+            <li class="sidebar-list-item" data-page="control.html">
+                <span class="material-icons-outlined">lightbulb</span> Device Control
+            </li>
+            <li class="sidebar-list-item" data-page="cloud.html">
+                <span class="material-icons-outlined">cloud</span> Cloud Monitor
+            </li>
+            <li class="sidebar-list-item" data-page="system_log.html">
+                <span class="material-icons-outlined">settings</span> System Info / Logs
+            </li>
+        </ul>
+    </aside>
 
-        <!-- Header -->
-        <header class="header">
-            <div class="menu-icon" onclick="openSidebar()">
-                <span class="material-icons-outlined">menu</span>
-            </div>
-            <div class="header-left">
-                <span class="material-icons-outlined">search</span>
-            </div>
-            <div class="header-right">
-                <span class="material-icons-outlined">notifications</span>
-                <span class="material-icons-outlined">email</span>
-                <span class="material-icons-outlined">account_circle</span>
-            </div>
-        </header>
-        <!-- End Header -->
+    <!-- Header -->
+    <header>
+        <div class="header-left">
+            <span class="material-icons-outlined">menu</span>
+            <strong>IoT Dashboard</strong>
+        </div>
+        <div class="header-right">
+            <span class="material-icons-outlined">notifications</span>
+            <span class="material-icons-outlined">email</span>
+            <span class="material-icons-outlined">account_circle</span>
+        </div>
+    </header>
 
-        <!-- Sidebar -->
-        <aside id="sidebar">
-            <div class="sidebar-title">
-                <div class="sidebar-brand">
-                    <span class="material-icons-outlined">memory</span> IOT LAB
-                </div>
-                <span class="material-icons-outlined" onclick="closeSidebar()">close</span>
-            </div>
+    <!-- Nội dung chính (load động) -->
+    <main id="main-content">
+        <h2>Loading Dashboard...</h2>
+    </main>
 
-            <ul class="sidebar-list">
-                <li class="sidebar-list-item active" onclick="showSection('dashboard')">
-                    <span class="material-icons-outlined">dashboard</span> Dashboard
-                </li>
-                <li class="sidebar-list-item">
-                    <a href="control.html">
-                        <span class="material-icons-outlined">lightbulb</span> Device Control
-                    </a>
-                </li>
+    <script>
+        // Hàm load nội dung HTML
+        function loadPage(page) {
+            fetch(page)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById("main-content").innerHTML = html;
+                    document.querySelectorAll(".sidebar-list-item").forEach(el => el.classList.remove("active"));
+                    document.querySelector(`.sidebar-list-item[data-page='${page}']`).classList.add("active");
+                })
+                .catch(() => {
+                    document.getElementById("main-content").innerHTML = "<h2>❌ Page not found.</h2>";
+                });
+        }
 
-                <li class="sidebar-list-item">
-                    <a href="cloud.html">
-                        <span class="material-icons-outlined">cloud</span> Cloud Monitor
-                    </a>
-                </li>
+        // Gán sự kiện click cho sidebar
+        document.querySelectorAll(".sidebar-list-item").forEach(item => {
+            item.addEventListener("click", () => {
+                const page = item.getAttribute("data-page");
+                loadPage(page);
+            });
+        });
 
-                <li class="sidebar-list-item" onclick="showSection('tinyml')">
-                    <span class="material-icons-outlined">psychology</span> TinyML Insights
-                </li>
-                <li class="sidebar-list-item" onclick="showSection('system')">
-                    <a href="system_log.html"> <span class="material-icons-outlined">settings</span> System Info /
-                        Logs
-                    </a>
-                </li>
-            </ul>
-        </aside>
-
-        <!-- Overlay for blur effect -->
-        <div id="sidebar-overlay" onclick="closeSidebar()"></div>
-
-
-        <!-- Main -->
-        <main class="main-container">
-            <div class="main-title">
-                <h2>ESP32-DASHBOARD</h2>
-            </div>
-
-            <div class="main-cards">
-                <!-- TEMPERATURE -->
-                <div class="card temp-card">
-                    <div class="card-inner">
-                        <div class="icon-wrapper">
-                            <lottie-player src="Thermometer.json" background="transparent" speed="1" loop autoplay>
-                            </lottie-player>
-                        </div>
-                        <div class="sensor-info">
-                            <h2>TEMPERATURE</h2>
-                            <h1 id="temperature">-- °C</h1>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- HUMIDITY -->
-                <div class="card humid-card">
-                    <div class="card-inner">
-                        <div class="icon-wrapper">
-                            <lottie-player src="humidity.json" background="transparent" speed="1" loop autoplay>
-                            </lottie-player>
-                        </div>
-                        <div class="sensor-info">
-                            <h2>HUMIDITY</h2>
-                            <h1 id="humidity">-- %</h1>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-
-            <div class="main-body">
-                <div class="chart temp-chart-card">
-                    <div class="text-center">
-                        <h2 class="card-title mb-3">Temp Over Time</h2>
-                        <canvas id="r" height="200"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart hudmidity-card">
-                    <div class="text-center">
-                        <h2 class="card-title mb-3">Humid Speed Over Time</h2>
-                        <canvas id="" height="200"></canvas>
-                    </div>
-                </div>
-            </div>
-
-        </main>
-        <!-- End Main -->
-
-    </div>
-
-    <!-- Scripts -->
-    <!-- Custom JS -->
-    <script src="script.js"></script>
+        // Tải dashboard mặc định
+        loadPage("dashboard.html");
+    </script>
 </body>
 
 </html>

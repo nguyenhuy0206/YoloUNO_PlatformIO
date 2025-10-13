@@ -9,44 +9,78 @@
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
-
-    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 
     <style>
         :root {
-            /* 🌐 IoT Theme – Đơn giản, chuyên nghiệp */
             --iot-bg: #f4f8fb;
-            /* Nền sáng nhẹ */
             --iot-surface: #ffffff;
-            /* Màu nền card */
             --iot-primary: #115f97;
-            /* Xanh dương đậm – tone chính */
             --iot-secondary: #074580;
-            /* Xanh dương hơi tím – điểm nhấn nhẹ */
             --iot-accent: #ff5252;
-            /* Đỏ – màu LED ON/OFF */
             --iot-text: #1e293b;
-            /* Màu chữ mặc định */
             --iot-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
 
         body {
-            background-color: var(--iot-bg);
-            color: var(--iot-text);
-            font-family: 'Open Sans', sans-serif;
             margin: 0;
+            font-family: 'Open Sans', sans-serif;
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            grid-template-rows: 70px 1fr;
+            grid-template-areas:
+                "sidebar header"
+                "sidebar main";
+            height: 100vh;
+            background: var(--iot-bg);
+            color: var(--iot-text);
+        }
+
+        /* Sidebar và Header (từ layout chung) */
+        #sidebar-container {
+            grid-area: sidebar;
+            background: #0a1f44;
+            color: #fff;
+            padding: 20px;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15);
+        }
+
+        main {
+            grid-area: main;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .sidebar-list {
+            list-style: none;
             padding: 0;
         }
 
-        /* --- Layout chính --- */
-        .control-container {
-            padding: 40px;
+        .sidebar-list-item {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
             display: flex;
-            flex-direction: column;
-            gap: 30px;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.3s;
+            cursor: pointer;
         }
 
+        .sidebar-list-item:hover,
+        .sidebar-list-item.active {
+            background: #115f97;
+        }
+
+        .sidebar-list-item a {
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Control Panel */
         .control-header {
             display: flex;
             justify-content: space-between;
@@ -71,11 +105,11 @@
             text-decoration: underline;
         }
 
-        /* --- Card thiết bị --- */
         .main-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 25px;
+            margin-top: 30px;
         }
 
         .device-card {
@@ -93,7 +127,6 @@
             box-shadow: 0 20px 35px rgba(0, 0, 0, 0.25);
         }
 
-        /* --- Icon LED / NeoPixel --- */
         .icon-wrapper {
             width: 80px;
             height: 80px;
@@ -117,7 +150,6 @@
             box-shadow: none;
         }
 
-        /* --- Text trong card --- */
         .device-card h2 {
             font-size: 1.1rem;
             margin-bottom: 5px;
@@ -129,7 +161,6 @@
             font-weight: 700;
         }
 
-        /* --- Nút điều khiển --- */
         .btn-group {
             display: flex;
             justify-content: center;
@@ -159,7 +190,6 @@
             transform: scale(1.05);
         }
 
-        /* --- NeoPixel card --- */
         .neopixel-card {
             background: var(--iot-secondary);
         }
@@ -173,20 +203,14 @@
             cursor: pointer;
         }
     </style>
-
 </head>
 
 <body>
-    <div class="control-container">
-        <div class="control-header">
-            <h1>💡 Device Control Panel</h1>
-            <a href="index.html" class="back-link"><span class="material-icons-outlined">arrow_back</span> Back to
-                Dashboard</a>
-        </div>
+    <!-- Sidebar + Header -->
 
+    <!-- Main -->
+    <main>
         <div class="main-cards">
-
-            <!-- LED 1 -->
             <div class="device-card">
                 <div class="icon-wrapper led-off" id="led1Icon"></div>
                 <h2>LED 1</h2>
@@ -195,7 +219,6 @@
                 <button class="btn btn-off" onclick="toggleDevice('led1','off')">Turn OFF</button>
             </div>
 
-            <!-- LED 2 -->
             <div class="device-card">
                 <div class="icon-wrapper led-off" id="led2Icon"></div>
                 <h2>LED 2</h2>
@@ -204,7 +227,6 @@
                 <button class="btn btn-off" onclick="toggleDevice('led2','off')">Turn OFF</button>
             </div>
 
-            <!-- NeoPixel -->
             <div class="device-card neopixel-card">
                 <h2>NEOPIXEL</h2>
                 <h3 id="neoStatus">Color Picker</h3>
@@ -216,13 +238,29 @@
             <button class="btn btn-on" onclick="allOn()">All ON</button>
             <button class="btn btn-off" onclick="allOff()">All OFF</button>
         </div>
-    </div>
+    </main>
 
     <script>
+        // Load sidebar layout
+        fetch("sidebar.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar-container").innerHTML = html;
+
+                // Tô sáng trang hiện tại
+                const links = document.querySelectorAll(".sidebar-list-item a");
+                links.forEach(link => {
+                    if (window.location.pathname.endsWith(link.getAttribute("href"))) {
+                        link.parentElement.classList.add("active");
+                    }
+                });
+            });
+
+        // Logic điều khiển LED và NeoPixel
         function toggleDevice(device, state) {
             fetch(`/?device=${device}&state=${state}`)
                 .then(res => res.json())
-                .then(data => {
+                .then(() => {
                     const statusEl = document.getElementById(`${device}Status`);
                     const iconEl = document.getElementById(`${device}Icon`);
                     if (state === "on") {
