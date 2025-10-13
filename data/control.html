@@ -212,7 +212,9 @@
     <main>
         <div class="main-cards">
             <div class="device-card">
-                <div class="icon-wrapper led-off" id="led1Icon"></div>
+                <div class="icon-wrapper led-off" id="led1Icon">
+                    <span class="material-icons-outlined">lightbulb</span>
+                </div>
                 <h2>LED 1</h2>
                 <h3 id="led1Status">OFF</h3>
                 <button class="btn btn-on" onclick="toggleDevice('led1','on')">Turn ON</button>
@@ -220,12 +222,15 @@
             </div>
 
             <div class="device-card">
-                <div class="icon-wrapper led-off" id="led2Icon"></div>
+                <div class="icon-wrapper led-off" id="led2Icon">
+                    <span class="material-icons-outlined">lightbulb</span>
+                </div>
                 <h2>LED 2</h2>
                 <h3 id="led2Status">OFF</h3>
                 <button class="btn btn-on" onclick="toggleDevice('led2','on')">Turn ON</button>
                 <button class="btn btn-off" onclick="toggleDevice('led2','off')">Turn OFF</button>
             </div>
+
 
             <div class="device-card neopixel-card">
                 <h2>NEOPIXEL</h2>

@@ -1,22 +1,52 @@
-function openSidebar() {
-    document.getElementById("sidebar").classList.add("sidebar-responsive");
-    document.getElementById("sidebar-overlay").classList.add("active");
-}
+(function () {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    const overlay = document.getElementById('sidebar-overlay') || document.querySelector('.sidebar-overlay');
 
-function closeSidebar() {
-    document.getElementById("sidebar").classList.remove("sidebar-responsive");
-    document.getElementById("sidebar-overlay").classList.remove("active");
-}
+    // If toggle exists -> wire collapse behavior
+    if (toggle && sidebar) {
+        toggle.addEventListener('click', () => {
+            // collapse / expand
+            sidebar.classList.toggle('sidebar-collapsed');
+            // rotate chevron icon accordingly
+            const icon = toggle.querySelector('.material-icons-outlined');
+            if (icon) icon.textContent = sidebar.classList.contains('sidebar-collapsed') ? 'chevron_right' : 'chevron_left';
+        });
+    }
 
+    // Activate correct menu item based on path or data-page
+    const current = window.location.pathname.split('/').pop() || 'index.html';
+    document.querySelectorAll('.sidebar-list-item').forEach(li => {
+        const page = li.getAttribute('data-page') || (li.querySelector('a') && li.querySelector('a').getAttribute('href'));
+        if (page && (current === page || (current === '' && page === 'dashboard.html'))) {
+            li.classList.add('active');
+        } else li.classList.remove('active');
 
-const sidebarItems = document.querySelectorAll('.sidebar-list-item');
-sidebarItems.forEach(item => {
-    item.addEventListener('click', () => {
-        sidebarItems.forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-        closeSidebar();
+        // click navigation behavior (if you use layout fetchs)
+        li.addEventListener('click', () => {
+            // if the list items have data-page and you're using layout loader, call loadPage
+            const pageTo = li.getAttribute('data-page');
+            if (pageTo && typeof loadPage === 'function') {
+                loadPage(pageTo);
+            } else if (pageTo) {
+                // fallback: navigate to page
+                window.location.href = pageTo;
+            }
+        });
     });
-});
+
+    // Mobile overlay open/close (optional)
+    document.querySelectorAll('.menu-icon, .header .material-icons-outlined').forEach(btn => {
+        btn && btn.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-open');
+            overlay && overlay.classList.toggle('active');
+        });
+    });
+    overlay && overlay.addEventListener('click', () => {
+        sidebar.classList.remove('sidebar-open');
+        overlay.classList.remove('active');
+    });
+})();
 function initFakeCardData() {
     const fakeWindSpeedKmh = 30; // km/h
     const fakeWindSpeedMs = (fakeWindSpeedKmh / 3.6).toFixed(1); // m/s

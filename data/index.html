@@ -105,31 +105,62 @@
 
 <body>
     <!-- Sidebar -->
-    <aside id="sidebar">
-        <div class="sidebar-title">
-            <span class="material-icons-outlined">memory</span> IOT LAB
+    <aside id="sidebar" class="sidebar-expanded" aria-label="Main sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <span class="material-icons-outlined brand-icon" aria-hidden="true">memory</span>
+                <div class="brand-text">
+                    <div class="brand-name">IOT LAB</div>
+                    <div class="brand-sub">ESP32 • IoT</div>
+                </div>
+            </div>
         </div>
-        <ul class="sidebar-list">
-            <li class="sidebar-list-item active" data-page="dashboard.html">
-                <span class="material-icons-outlined">dashboard</span> Dashboard
-            </li>
-            <li class="sidebar-list-item" data-page="control.html">
-                <span class="material-icons-outlined">lightbulb</span> Device Control
-            </li>
-            <li class="sidebar-list-item" data-page="cloud.html">
-                <span class="material-icons-outlined">cloud</span> Cloud Monitor
-            </li>
-            <li class="sidebar-list-item" data-page="system_log.html">
-                <span class="material-icons-outlined">settings</span> System Info / Logs
-            </li>
-        </ul>
+
+        <nav class="sidebar-nav" role="navigation">
+            <ul class="sidebar-list">
+                <li class="sidebar-list-item" data-page="dashboard.html">
+                    <span class="sidebar-icon material-icons-outlined" aria-hidden="true">dashboard</span>
+                    <span class="sidebar-label">Dashboard</span>
+                </li>
+
+                <li class="sidebar-list-item" data-page="control.html">
+                    <span class="sidebar-icon material-icons-outlined" aria-hidden="true">lightbulb</span>
+                    <span class="sidebar-label">Device Control</span>
+                </li>
+
+                <li class="sidebar-list-item" data-page="cloud.html">
+                    <span class="sidebar-icon material-icons-outlined" aria-hidden="true">cloud</span>
+                    <span class="sidebar-label">Cloud Monitor</span>
+                </li>
+
+                <li class="sidebar-list-item" data-page="system_log.html">
+                    <span class="sidebar-icon material-icons-outlined" aria-hidden="true">settings</span>
+                    <span class="sidebar-label">System Logs</span>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user">
+                <img src="https://i.pravatar.cc/40" alt="User avatar" class="user-avatar">
+                <div class="user-info">
+                    <div class="user-name">Admin</div>
+                    <div class="user-role">Operator</div>
+                </div>
+            </div>
+            <div class="sidebar-meta">
+                <span class="version">v1.0</span>
+            </div>
+        </div>
     </aside>
+
+    <!-- overlay for mobile -->
+    <div id="sidebar-overlay" class="sidebar-overlay" tabindex="-1"></div>
 
     <!-- Header -->
     <header>
         <div class="header-left">
-            <span class="material-icons-outlined">menu</span>
-            <strong>IoT Dashboard</strong>
+
         </div>
         <div class="header-right">
             <span class="material-icons-outlined">notifications</span>
