@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Control | IoT Dashboard</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        :root {
+            /* 🌐 IoT Theme – Đơn giản, chuyên nghiệp */
+            --iot-bg: #f4f8fb;
+            /* Nền sáng nhẹ */
+            --iot-surface: #ffffff;
+            /* Màu nền card */
+            --iot-primary: #115f97;
+            /* Xanh dương đậm – tone chính */
+            --iot-secondary: #074580;
+            /* Xanh dương hơi tím – điểm nhấn nhẹ */
+            --iot-accent: #ff5252;
+            /* Đỏ – màu LED ON/OFF */
+            --iot-text: #1e293b;
+            /* Màu chữ mặc định */
+            --iot-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: var(--iot-bg);
+            color: var(--iot-text);
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- Layout chính --- */
+        .control-container {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-header h1 {
+            font-size: 1.8rem;
+            color: var(--iot-primary);
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--iot-primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* --- Card thiết bị --- */
+        .main-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .device-card {
+            background: var(--iot-primary);
+            border-radius: 18px;
+            padding: 25px;
+            color: white;
+            text-align: center;
+            box-shadow: var(--iot-shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .device-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        /* --- Icon LED / NeoPixel --- */
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 10px;
+            border-radius: 50%;
+            background: #1e5aa8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .led-on {
+            background: var(--iot-accent);
+            box-shadow: 0 0 25px 10px rgba(255, 82, 82, 0.8);
+        }
+
+        .led-off {
+            background: #555;
+            box-shadow: none;
+        }
+
+        /* --- Text trong card --- */
+        .device-card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .device-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        /* --- Nút điều khiển --- */
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 12px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 22px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #fff;
+        }
+
+        .btn-on {
+            background-color: var(--iot-accent);
+        }
+
+        .btn-off {
+            background-color: #444;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* --- NeoPixel card --- */
+        .neopixel-card {
+            background: var(--iot-secondary);
+        }
+
+        .neopixel-card input[type="color"] {
+            margin-top: 15px;
+            width: 60px;
+            height: 40px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="control-container">
+        <div class="control-header">
+            <h1>💡 Device Control Panel</h1>
+            <a href="index.html" class="back-link"><span class="material-icons-outlined">arrow_back</span> Back to
+                Dashboard</a>
+        </div>
+
+        <div class="main-cards">
+
+            <!-- LED 1 -->
+            <div class="device-card">
+                <div class="icon-wrapper led-off" id="led1Icon"></div>
+                <h2>LED 1</h2>
+                <h3 id="led1Status">OFF</h3>
+                <button class="btn btn-on" onclick="toggleDevice('led1','on')">Turn ON</button>
+                <button class="btn btn-off" onclick="toggleDevice('led1','off')">Turn OFF</button>
+            </div>
+
+            <!-- LED 2 -->
+            <div class="device-card">
+                <div class="icon-wrapper led-off" id="led2Icon"></div>
+                <h2>LED 2</h2>
+                <h3 id="led2Status">OFF</h3>
+                <button class="btn btn-on" onclick="toggleDevice('led2','on')">Turn ON</button>
+                <button class="btn btn-off" onclick="toggleDevice('led2','off')">Turn OFF</button>
+            </div>
+
+            <!-- NeoPixel -->
+            <div class="device-card neopixel-card">
+                <h2>NEOPIXEL</h2>
+                <h3 id="neoStatus">Color Picker</h3>
+                <input type="color" id="neoColor" value="#00ff00" onchange="setNeoColor(this.value)">
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-on" onclick="allOn()">All ON</button>
+            <button class="btn btn-off" onclick="allOff()">All OFF</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleDevice(device, state) {
+            fetch(`/?device=${device}&state=${state}`)
+                .then(res => res.json())
+                .then(data => {
+                    const statusEl = document.getElementById(`${device}Status`);
+                    const iconEl = document.getElementById(`${device}Icon`);
+                    if (state === "on") {
+                        statusEl.innerText = "ON";
+                        iconEl.classList.add("led-on");
+                        iconEl.classList.remove("led-off");
+                    } else {
+                        statusEl.innerText = "OFF";
+                        iconEl.classList.add("led-off");
+                        iconEl.classList.remove("led-on");
+                    }
+                })
+                .catch(err => console.error("Device control error:", err));
+        }
+
+        function setNeoColor(color) {
+            fetch(`/?neopixel=${color.substring(1)}`)
+                .then(res => res.json())
+                .then(() => {
+                    document.getElementById("neoStatus").innerText = `Color: ${color.toUpperCase()}`;
+                })
+                .catch(err => console.error("NeoPixel Error:", err));
+        }
+
+        function allOn() {
+            toggleDevice('led1', 'on');
+            toggleDevice('led2', 'on');
+        }
+
+        function allOff() {
+            toggleDevice('led1', 'off');
+            toggleDevice('led2', 'off');
+        }
+    </script>
+</body>
+
+</html>

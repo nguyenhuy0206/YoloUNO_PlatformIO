@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Admin Dashboard</title>
+
+    <!-- Open Sans Font -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@100;200;300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="grid-container">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="menu-icon" onclick="openSidebar()">
+                <span class="material-icons-outlined">menu</span>
+            </div>
+            <div class="header-left">
+                <span class="material-icons-outlined">search</span>
+            </div>
+            <div class="header-right">
+                <span class="material-icons-outlined">notifications</span>
+                <span class="material-icons-outlined">email</span>
+                <span class="material-icons-outlined">account_circle</span>
+            </div>
+        </header>
+        <!-- End Header -->
+
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <div class="sidebar-title">
+                <div class="sidebar-brand">
+                    <span class="material-icons-outlined">memory</span> IOT LAB
+                </div>
+                <span class="material-icons-outlined" onclick="closeSidebar()">close</span>
+            </div>
+
+            <ul class="sidebar-list">
+                <li class="sidebar-list-item active" onclick="showSection('dashboard')">
+                    <span class="material-icons-outlined">dashboard</span> Dashboard
+                </li>
+                <li class="sidebar-list-item">
+                    <a href="control.html">
+                        <span class="material-icons-outlined">lightbulb</span> Device Control
+                    </a>
+                </li>
+
+                <li class="sidebar-list-item">
+                    <a href="cloud.html">
+                        <span class="material-icons-outlined">cloud</span> Cloud Monitor
+                    </a>
+                </li>
+
+                <li class="sidebar-list-item" onclick="showSection('tinyml')">
+                    <span class="material-icons-outlined">psychology</span> TinyML Insights
+                </li>
+                <li class="sidebar-list-item" onclick="showSection('system')">
+                    <span class="material-icons-outlined">settings</span> System Info / Logs
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Overlay for blur effect -->
+        <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+
+        <!-- Main -->
+        <main class="main-container">
+            <div class="main-title">
+                <h2>ESP32-DASHBOARD</h2>
+            </div>
+
+            <div class="main-cards">
+                <!-- TEMPERATURE -->
+                <div class="card temp-card">
+                    <div class="card-inner">
+                        <div class="icon-wrapper">
+                            <lottie-player src="Thermometer.json" background="transparent" speed="1" loop autoplay>
+                            </lottie-player>
+                        </div>
+                        <div class="sensor-info">
+                            <h2>TEMPERATURE</h2>
+                            <h1 id="temperature">-- °C</h1>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HUMIDITY -->
+                <div class="card humid-card">
+                    <div class="card-inner">
+                        <div class="icon-wrapper">
+                            <lottie-player src="humidity.json" background="transparent" speed="1" loop autoplay>
+                            </lottie-player>
+                        </div>
+                        <div class="sensor-info">
+                            <h2>HUMIDITY</h2>
+                            <h1 id="humidity">-- %</h1>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="main-body">
+                <div class="chart temp-chart-card">
+                    <div class="text-center">
+                        <h2 class="card-title mb-3">Temp Over Time</h2>
+                        <canvas id="r" height="200"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart hudmidity-card">
+                    <div class="text-center">
+                        <h2 class="card-title mb-3">Humid Speed Over Time</h2>
+                        <canvas id="" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+        <!-- End Main -->
+
+    </div>
+
+    <!-- Scripts -->
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+
+</html>
