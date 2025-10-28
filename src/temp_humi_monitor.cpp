@@ -1,45 +1,51 @@
 #include "temp_humi_monitor.h"
 DHT20 dht20;
-LiquidCrystal_I2C lcd(33,16,2);
+LiquidCrystal_I2C lcd(33, 16, 2);
 
-
-void temp_humi_monitor(void *pvParameters){
-
+void temp_humi_monitor(void *pvParameters)
+{
     Wire.begin(11, 12);
     Serial.begin(115200);
     dht20.begin();
+    SensorData data;
 
-    while (1){
-        /* code */
-        
+    while (1)
+    {
         dht20.read();
         // Reading temperature in Celsius
         float temperature = dht20.getTemperature();
         // Reading humidity
         float humidity = dht20.getHumidity();
 
-        
-
         // Check if any reads failed and exit early
-        if (isnan(temperature) || isnan(humidity)) {
+        if (isnan(temperature) || isnan(humidity))
+        {
             Serial.println("Failed to read from DHT sensor!");
-            temperature = humidity =  -1;
-            //return;
+            temperature = humidity = -1;
+            // return;
         }
+        data.humidity = humidity;
+        data.temp = temperature;
 
-        //Update global variables for temperature and humidity
-        glob_temperature = temperature;
-        glob_humidity = humidity;
+        xQueueSend(xQueueSensor, &data, portMAX_DELAY);
+
+        xSemaphoreGive(xSemaphoreLed);
+        xSemaphoreGive(xSemaphoreNeoLed);
+        xSemaphoreGive(xSemaphoreLCD);
+
+        // Update global variables for temperature and humidity
+        // glob_temperature = temperature;
+        // glob_humidity = humidity;
 
         // Print the results
-        
-        Serial.print("Humidity: ");
-        Serial.print(humidity);
-        Serial.print("%  Temperature: ");
-        Serial.print(temperature);
-        Serial.println("°C");
-        
-        vTaskDelay(5000);
+        Serial.printf("[Sensor] Sent to Queue: T=%.1f H=%.1f\n", data.temperature, data.humidity);
+
+        // Serial.print("Humidity: ");
+        // Serial.print(humidity);
+        // Serial.print("%  Temperature: ");
+        // Serial.print(temperature);
+        // Serial.println("°C");
+
+        vTaskDelay(2000);
     }
-    
 }
