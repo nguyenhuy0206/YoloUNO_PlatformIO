@@ -39,11 +39,11 @@ void Save_info_File(String wifi_ssid, String wifi_pass, String CORE_IOT_TOKEN, S
   Serial.println(wifi_pass);
 
   DynamicJsonDocument doc(4096);
-  doc["WIFI_SSID"] = wifi_ssid;
-  doc["WIFI_PASS"] = wifi_pass;
-  doc["CORE_IOT_TOKEN"] = CORE_IOT_TOKEN;
-  doc["CORE_IOT_SERVER"] = CORE_IOT_SERVER;
-  doc["CORE_IOT_PORT"] = CORE_IOT_PORT;
+  doc["WIFI_SSID"] = wifi_ssid.length() ? wifi_ssid : "";
+  doc["WIFI_PASS"] = wifi_pass.length() ? wifi_pass : "";
+  doc["CORE_IOT_TOKEN"] = CORE_IOT_TOKEN.length() ? CORE_IOT_TOKEN : "";
+  doc["CORE_IOT_SERVER"] = CORE_IOT_SERVER.length() ? CORE_IOT_SERVER : "";
+  doc["CORE_IOT_PORT"] = CORE_IOT_PORT.length() ? CORE_IOT_PORT : "";
 
   File configFile = LittleFS.open("/info.dat", "w");
   if (configFile)
@@ -55,6 +55,7 @@ void Save_info_File(String wifi_ssid, String wifi_pass, String CORE_IOT_TOKEN, S
   {
     Serial.println('Unable to save the configuration.');
   }
+  delay(1000);
   ESP.restart();
 };
 
@@ -65,10 +66,10 @@ bool check_info_File(bool check)
     if (!LittleFS.begin(true))
     {
       Serial.println("❌ Lỗi khởi động LittleFS!");
-      return false;
     }
+    Load_info_File();
   }
-  Load_info_File();
+
   if (WIFI_SSID.isEmpty() && WIFI_PASS.isEmpty())
   {
     if (!check)

@@ -51,11 +51,11 @@ void handleWebSocketMessage(String message)
         Serial.println("SERVER: " + CORE_IOT_SERVER);
         Serial.println("PORT: " + CORE_IOT_PORT);
 
+        String msg = "{\"status\":\"ok\",\"page\":\"setting_saved\"}";
+        ws.textAll(msg);
         // 👉 Gọi hàm lưu cấu hình
         Save_info_File(WIFI_SSID, WIFI_PASS, CORE_IOT_TOKEN, CORE_IOT_SERVER, CORE_IOT_PORT);
 
         // Phản hồi lại client (tùy chọn)
-        String msg = "{\"status\":\"ok\",\"page\":\"setting_saved\"}";
-        ws.textAll(msg);
     }
 }

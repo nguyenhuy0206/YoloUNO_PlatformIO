@@ -37,6 +37,7 @@ bool Wifi_reconnect()
     const wl_status_t status = WiFi.status();
     if (status == WL_CONNECTED)
     {
+        Serial.println(WiFi.localIP());
         return true;
     }
     startSTA();
