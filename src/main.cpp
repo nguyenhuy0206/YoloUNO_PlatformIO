@@ -1,4 +1,5 @@
 #include "global.h"
+#include <Arduino.h>
 
 #include "led_blinky.h"
 #include "neo_blinky.h"
@@ -11,24 +12,18 @@ void setup()
 {
   Serial.begin(115200);
 
-  // Tạo queue cho dữ liệu sensor (5 phần tử)
   xQueueSensor = xQueueCreate(5, sizeof(SensorData));
+  xBinarySemaphoreInternet = xSemaphoreCreateBinary();
+  xSemaphoreLed = xSemaphoreCreateMutex();
+  xSemaphoreNeoLed = xSemaphoreCreateMutex();
+  xSemaphoreLCD = xSemaphoreCreateMutex();
 
-  // Tạo semaphore cho từng task
-  xSemaphoreLed = xSemaphoreCreateBinary();
-  xSemaphoreNeoLed = xSemaphoreCreateBinary();
-  xSemaphoreLCD = xSemaphoreCreateBinary();
+  // Give internet semaphore ready
+  xSemaphoreGive(xBinarySemaphoreInternet);
 
-  // Check if RTOS work?
-  if (xQueueSensor && xSemaphoreLED && xSemaphoreNeo && xSemaphoreLCD)
-    Serial.println("RTOS primitives created successfully!");
-
-  xTaskCreate(led_blinky, "Task LED Blink", 2048, NULL, 2, NULL);
-  xTaskCreate(neo_blinky, "Task NEO Blink", 2048, NULL, 2, NULL);
-  xTaskCreate(temp_humi_monitor, "Task TEMP HUMI Monitor", 2048, NULL, 2, NULL);
-  xTaskCreate(main_server_task, "Task Main Server", 8192, NULL, 2, NULL);
-  // xTaskCreate( tiny_ml_task, "Tiny ML Task" ,2048  ,NULL  ,2 , NULL);
-  xTaskCreate(coreiot_task, "CoreIOT Task", 4096, NULL, 2, NULL);
+  xTaskCreate(led_blinky, "LED", 4096, NULL, 1, NULL);
+  // xTaskCreate(neo_blinky, "Neo", 2048, NULL, 1, NULL);
+  xTaskCreate(temp_humi_monitor, "Sensor", 4096, NULL, 1, NULL);
 }
 
 void loop()

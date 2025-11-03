@@ -1,4 +1,6 @@
 #include "temp_humi_monitor.h"
+#include <Arduino.h>
+
 DHT20 dht20;
 LiquidCrystal_I2C lcd(33, 16, 2);
 
@@ -25,7 +27,7 @@ void temp_humi_monitor(void *pvParameters)
             // return;
         }
         data.humidity = humidity;
-        data.temp = temperature;
+        data.temperature = temperature;
 
         xQueueSend(xQueueSensor, &data, portMAX_DELAY);
 
