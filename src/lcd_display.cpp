@@ -13,18 +13,30 @@ void lcd_display(void *pvParameters)
     lcd.clear();
     lcd.print("LCD Ready");
     Serial.println("[LCD] Init done");
-
     vTaskDelay(pdMS_TO_TICKS(1000));
+    SensorData recvData;
     while (1)
     {
-        if (xSemaphoreTake(xSemaphoreLCD, pdMS_TO_TICKS(1000)) == pdPASS)
-        {   
-            
+        if (xQueueReceive(xQueueSensor, &recvData, portMAX_DELAY) == pdTRUE)
+        {
+            String state;
+            if (recvData.temperature >= 40 || recvData.humidity <= 30)
+                state = "CRITICAL";
+            else if (recvData.temperature >= 35 || recvData.humidity <= 40)
+                state = "WARNING";
+            else
+                state = "NORMAL";
+            lcd.clear();
             lcd.setCursor(0, 0);
-            lcd.print("T: " + String(data.temperature));
+            lcd.print("State:       ");
+            lcd.setCursor(0, 0);
+            lcd.print("State: " + state);
+
             lcd.setCursor(0, 1);
-            lcd.print("H: " + String(data.humidity));
-            Serial.printf("[LCD] T=%.1f H=%.1f\n", data.temperature, data.humidity);
+            char buffer[32];
+            snprintf(buffer, sizeof(buffer), "T:%.1f H:%.1f ", recvData.temperature, recvData.humidity);
+            lcd.print(buffer);
+            Serial.printf("[LCD] T=%.1f H=%.1f\n", recvData.temperature, recvData.humidity);
         }
         else
         {

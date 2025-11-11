@@ -5,12 +5,9 @@
 void led_blinky(void *pvParameters)
 {
   pinMode(LED_GPIO, OUTPUT);
-  SensorData data;
-
   while (1)
   {
-
-    if (xQueueReceive(xQueueSensor, &data, 0) == pdPASS)
+    if (xSemaphoreTake(xSemaphoreLed, portMAX_DELAY) == pdPASS)
     {
       int delayTime;
 

@@ -9,7 +9,7 @@ void neo_blinky(void *pvParameters)
 
     while (1)
     {
-        if (xSemaphoreTake(xSemaphoreNeoLed, pdMS_TO_TICKS(500)) == pdTRUE)
+        if (xSemaphoreTake(xSemaphoreNeoLed, portMAX_DELAY) == pdTRUE)
         {
             if (data.humidity < 40)
                 strip.setPixelColor(0, strip.Color(255, 0, 0));

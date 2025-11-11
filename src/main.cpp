@@ -15,7 +15,7 @@ void setup()
 
   xQueueSensor = xQueueCreate(5, sizeof(SensorData));
   xBinarySemaphoreInternet = xSemaphoreCreateBinary();
-  xSemaphoreLed = xSemaphoreCreateMutex();
+  xSemaphoreLed = xSemaphoreCreateBinary();
   xSemaphoreNeoLed = xSemaphoreCreateBinary();
   xSemaphoreLCD = xSemaphoreCreateBinary();
 
