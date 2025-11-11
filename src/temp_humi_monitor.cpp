@@ -3,19 +3,19 @@
 
 DHT20 dht20;
 // LiquidCrystal_I2C lcd(33, 16, 2);
-LiquidCrystal_I2C lcd(0x21, 16, 2);
+// LiquidCrystal_I2C lcd(0x21, 16, 2);
 
 void temp_humi_monitor(void *pvParameters)
 {
-    Wire.begin(11, 12);
+    // Wire.begin(11, 12);
     Serial.begin(115200);
     dht20.begin();
-    SensorData data;
-    lcd.begin();
-    lcd.backlight();
-    lcd.clear();
-    lcd.print("LCD Ready");
-    Serial.println("[LCD] Init done");
+    // SensorData data;
+    // lcd.begin();
+    // lcd.backlight();
+    // lcd.clear();
+    // lcd.print("LCD Ready");
+    // Serial.println("[LCD] Init done");
     while (1)
     {
         dht20.read();
@@ -43,27 +43,27 @@ void temp_humi_monitor(void *pvParameters)
         // Update global variables for temperature and humidity
         // glob_temperature = temperature;
         // glob_humidity = humidity;
-        String state;
-        if (data.temperature >= 40 || data.humidity <= 30)
-            state = "CRITICAL";
-        else if (data.temperature >= 35 || data.humidity <= 40)
-            state = "WARNING";
-        else
-            state = "NORMAL";
+        // String state;
+        // if (data.temperature >= 40 || data.humidity <= 30)
+        //     state = "CRITICAL";
+        // else if (data.temperature >= 35 || data.humidity <= 40)
+        //     state = "WARNING";
+        // else
+        //     state = "NORMAL";
 
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("State: " + state);
-        lcd.setCursor(0, 1);
+        // lcd.clear();
+        // lcd.setCursor(0, 0);
+        // lcd.print("State: " + state);
+        // lcd.setCursor(0, 1);
 
-        char buffer[32];
-        snprintf(buffer, sizeof(buffer), "T:%.1f H:%.1f",
-                 data.temperature, data.humidity);
-        lcd.print(buffer);
+        // char buffer[32];
+        // snprintf(buffer, sizeof(buffer), "T:%.1f H:%.1f",
+        //          data.temperature, data.humidity);
+        // lcd.print(buffer);
 
-        Serial.printf("[LCD] %s | T=%.1f H=%.1f\n",
-                      state.c_str(), data.temperature, data.humidity);
-        // Print the results
+        // Serial.printf("[LCD] %s | T=%.1f H=%.1f\n",
+        //               state.c_str(), data.temperature, data.humidity);
+        // // Print the results
         Serial.printf("[Sensor] Sent to Queue: T=%.1f H=%.1f\n", data.temperature, data.humidity);
 
         // Serial.print("Humidity: ");

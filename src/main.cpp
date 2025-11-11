@@ -11,21 +11,26 @@
 void setup()
 {
   Serial.begin(115200);
+  Wire.begin(11, 12);
 
   xQueueSensor = xQueueCreate(5, sizeof(SensorData));
   xBinarySemaphoreInternet = xSemaphoreCreateBinary();
   xSemaphoreLed = xSemaphoreCreateMutex();
-  xSemaphoreNeoLed = xSemaphoreCreateMutex();
-  xSemaphoreLCD = xSemaphoreCreateMutex();
+  xSemaphoreNeoLed = xSemaphoreCreateBinary();
+  xSemaphoreLCD = xSemaphoreCreateBinary();
 
   // Give internet semaphore ready
   xSemaphoreGive(xBinarySemaphoreInternet);
 
-  xTaskCreate(led_blinky, "LED", 4096, NULL, 1, NULL);
-  // xTaskCreate(lcd_display, "LCD", 4096, NULL, 1, NULL);
-  // xTaskCreate(neo_blinky, "Neo", 2048, NULL, 1, NULL);
+  // Tạo task LCD trước
+
+  // Tạo task sensor sau
   xTaskCreate(temp_humi_monitor, "Sensor", 4096, NULL, 1, NULL);
-  vTaskDelay(pdMS_TO_TICKS(500));
+
+  // LED task
+  xTaskCreate(led_blinky, "LED", 4096, NULL, 1, NULL);
+  xTaskCreate(neo_blinky, "NeoPixel", 4096, NULL, 1, NULL);
+  xTaskCreate(lcd_display, "LCD", 4096, NULL, 1, NULL);
 }
 
 void loop()
