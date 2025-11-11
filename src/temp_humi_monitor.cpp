@@ -28,10 +28,10 @@ void temp_humi_monitor(void *pvParameters)
         data.humidity = humidity;
         data.temperature = temperature;
         xQueueSend(xQueueSensor, &data, portMAX_DELAY);
+        xSemaphoreGive(xSemaphoreLCD);
 
         xSemaphoreGive(xSemaphoreLed);
         xSemaphoreGive(xSemaphoreNeoLed);
-        xSemaphoreGive(xSemaphoreLCD);
 
         Serial.printf("[Sensor] Sent to Queue: T=%.1f H=%.1f\n", data.temperature, data.humidity);
 
