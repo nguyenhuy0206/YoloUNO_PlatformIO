@@ -14,11 +14,3 @@ QueueHandle_t xQueueSensor;
 SemaphoreHandle_t xSemaphoreLed;
 SemaphoreHandle_t xSemaphoreNeoLed;
 SemaphoreHandle_t xSemaphoreLCD;
-
-enum state
-{
-    NORMAL,
-    WARNING,
-    CRITICAL
-};
-extern state curr_state = NORMAL;
