@@ -7,7 +7,6 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
-
 void coreiot_task(void *pvParameters);
-
+void wifi_connect_task(void *pvParameters);
 #endif
