@@ -10,11 +10,12 @@
 // extern float glob_humidity;
 typedef struct
 {
-    float temp;
+    float temperature;
     float humidity;
 } SensorData;
 
-extern Queue_Handle_t xQueueSensor;
+extern SensorData data;
+extern QueueHandle_t xQueueSensor;
 extern SemaphoreHandle_t xSemaphoreLed;
 extern SemaphoreHandle_t xSemaphoreNeoLed;
 extern SemaphoreHandle_t xSemaphoreLCD;

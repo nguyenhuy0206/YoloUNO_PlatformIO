@@ -1,14 +1,15 @@
 #include "temp_humi_monitor.h"
+#include <Arduino.h>
+
 DHT20 dht20;
-LiquidCrystal_I2C lcd(33, 16, 2);
+// LiquidCrystal_I2C lcd(33, 16, 2);
+// LiquidCrystal_I2C lcd(0x21, 16, 2);
 
 void temp_humi_monitor(void *pvParameters)
 {
-    Wire.begin(11, 12);
+    // Wire.begin(11, 12);
     Serial.begin(115200);
     dht20.begin();
-    SensorData data;
-
     while (1)
     {
         dht20.read();
@@ -25,26 +26,14 @@ void temp_humi_monitor(void *pvParameters)
             // return;
         }
         data.humidity = humidity;
-        data.temp = temperature;
-
+        data.temperature = temperature;
         xQueueSend(xQueueSensor, &data, portMAX_DELAY);
+        xSemaphoreGive(xSemaphoreLCD);
 
         xSemaphoreGive(xSemaphoreLed);
         xSemaphoreGive(xSemaphoreNeoLed);
-        xSemaphoreGive(xSemaphoreLCD);
 
-        // Update global variables for temperature and humidity
-        // glob_temperature = temperature;
-        // glob_humidity = humidity;
-
-        // Print the results
         Serial.printf("[Sensor] Sent to Queue: T=%.1f H=%.1f\n", data.temperature, data.humidity);
-
-        // Serial.print("Humidity: ");
-        // Serial.print(humidity);
-        // Serial.print("%  Temperature: ");
-        // Serial.print(temperature);
-        // Serial.println("°C");
 
         vTaskDelay(2000);
     }

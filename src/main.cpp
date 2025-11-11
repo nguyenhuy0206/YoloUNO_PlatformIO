@@ -1,4 +1,5 @@
 #include "global.h"
+#include <Arduino.h>
 
 #include "led_blinky.h"
 #include "neo_blinky.h"
@@ -6,31 +7,54 @@
 #include "mainserver.h"
 #include "tinyml.h"
 #include "coreiot.h"
-
+#include "lcd_display.h"
 void setup()
 {
   Serial.begin(115200);
+  Wire.begin(11, 12);
 
-  // Tạo queue cho dữ liệu sensor (5 phần tử)
   xQueueSensor = xQueueCreate(5, sizeof(SensorData));
-
-  // Tạo semaphore cho từng task
+  xBinarySemaphoreInternet = xSemaphoreCreateBinary();
   xSemaphoreLed = xSemaphoreCreateBinary();
   xSemaphoreNeoLed = xSemaphoreCreateBinary();
   xSemaphoreLCD = xSemaphoreCreateBinary();
 
-  // Check if RTOS work?
-  if (xQueueSensor && xSemaphoreLED && xSemaphoreNeo && xSemaphoreLCD)
-    Serial.println("RTOS primitives created successfully!");
+  // Give internet semaphore ready
+  xSemaphoreGive(xBinarySemaphoreInternet);
 
-  xTaskCreate(led_blinky, "Task LED Blink", 2048, NULL, 2, NULL);
-  xTaskCreate(neo_blinky, "Task NEO Blink", 2048, NULL, 2, NULL);
-  xTaskCreate(temp_humi_monitor, "Task TEMP HUMI Monitor", 2048, NULL, 2, NULL);
-  xTaskCreate(main_server_task, "Task Main Server", 8192, NULL, 2, NULL);
-  // xTaskCreate( tiny_ml_task, "Tiny ML Task" ,2048  ,NULL  ,2 , NULL);
-  xTaskCreate(coreiot_task, "CoreIOT Task", 4096, NULL, 2, NULL);
+  // Tạo task LCD trước
+  xTaskCreate(wifi_connect_task, "WiFi Connect", 4096, NULL, 1, NULL);
+
+  // Tạo task sensor sau
+  xTaskCreate(temp_humi_monitor, "Sensor", 4096, NULL, 1, NULL);
+
+  // LED task
+  // xTaskCreate(led_blinky, "LED", 4096, NULL, 1, NULL);
+  // xTaskCreate(neo_blinky, "NeoPixel", 4096, NULL, 1, NULL);
+  // xTaskCreate(lcd_display, "LCD", 4096, NULL, 1, NULL);
+  xTaskCreate(coreiot_task, "CoreIOT", 8192, NULL, 1, NULL);
 }
 
 void loop()
 {
 }
+// #include <Wire.h>
+// #include <Arduino.h>
+// void setup()
+// {
+//   Serial.begin(115200);
+//   Wire.begin(11, 12); // SDA, SCL như bạn dùng
+//   Serial.println("I2C Scanner running...");
+// }
+
+// void loop()
+// {
+//   for (uint8_t addr = 1; addr < 127; addr++)
+//   {
+//     Wire.beginTransmission(addr);
+//     if (Wire.endTransmission() == 0)
+//     {
+//       Serial.printf("Found I2C device at 0x%02X\n", addr);
+//     }
+//   }
+// }
