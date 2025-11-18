@@ -6,8 +6,8 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 
-// extern float glob_temperature;
-// extern float glob_humidity;
+extern float glob_temperature;
+extern float glob_humidity;
 typedef struct
 {
     float temperature;
