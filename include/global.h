@@ -19,6 +19,7 @@ extern QueueHandle_t xQueueSensor;
 extern SemaphoreHandle_t xSemaphoreLed;
 extern SemaphoreHandle_t xSemaphoreNeoLed;
 extern SemaphoreHandle_t xSemaphoreLCD;
+extern SemaphoreHandle_t xSensorMutex;
 
 extern String ssid;
 extern String password;
