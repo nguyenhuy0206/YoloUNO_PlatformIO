@@ -22,7 +22,7 @@ void setup()
   xSemaphoreLCD = xSemaphoreCreateBinary();
 
   // Tạo task LCD trước
-  xTaskCreate(wifi_connect_task, "WiFi Connect", 4096, NULL, 1, NULL);
+  // xTaskCreate(wifi_connect_task, "WiFi Connect", 4096, NULL, 1, NULL);
 
   // Tạo task sensor sau
   xTaskCreate(temp_humi_monitor, "Sensor", 4096, NULL, 1, NULL);
