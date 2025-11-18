@@ -6,8 +6,8 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 
-// extern float glob_temperature;
-// extern float glob_humidity;
+extern float glob_temperature;
+extern float glob_humidity;
 typedef struct
 {
     float temperature;
@@ -19,6 +19,7 @@ extern QueueHandle_t xQueueSensor;
 extern SemaphoreHandle_t xSemaphoreLed;
 extern SemaphoreHandle_t xSemaphoreNeoLed;
 extern SemaphoreHandle_t xSemaphoreLCD;
+extern SemaphoreHandle_t xSensorMutex;
 
 extern String ssid;
 extern String password;

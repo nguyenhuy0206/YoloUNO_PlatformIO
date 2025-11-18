@@ -25,16 +25,21 @@ void temp_humi_monitor(void *pvParameters)
             temperature = humidity = -1;
             // return;
         }
-        data.humidity = humidity;
-        data.temperature = temperature;
-        xQueueSend(xQueueSensor, &data, portMAX_DELAY);
-        xSemaphoreGive(xSemaphoreLCD);
 
-        xSemaphoreGive(xSemaphoreLed);
-        xSemaphoreGive(xSemaphoreNeoLed);
+        if (xSemaphoreTake(xSensorMutex, portMAX_DELAY))
+        {
+            data.temperature = temperature;
+            data.humidity = humidity;
+            xSemaphoreGive(xSensorMutex);
+        }
+
+        // xQueueSend(xQueueSensor, &data, portMAX_DELAY);
+        // xSemaphoreGive(xSemaphoreLCD);
+        // xSemaphoreGive(xSemaphoreLed);
+        // xSemaphoreGive(xSemaphoreNeoLed);
 
         Serial.printf("[Sensor] Sent to Queue: T=%.1f H=%.1f\n", data.temperature, data.humidity);
 
-        vTaskDelay(2000);
+        vTaskDelay(10000);
     }
 }

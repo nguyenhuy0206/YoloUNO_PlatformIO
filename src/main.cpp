@@ -14,13 +14,12 @@ void setup()
   Wire.begin(11, 12);
 
   xQueueSensor = xQueueCreate(5, sizeof(SensorData));
+  xSensorMutex = xSemaphoreCreateMutex();
+
   xBinarySemaphoreInternet = xSemaphoreCreateBinary();
   xSemaphoreLed = xSemaphoreCreateBinary();
   xSemaphoreNeoLed = xSemaphoreCreateBinary();
   xSemaphoreLCD = xSemaphoreCreateBinary();
-
-  // Give internet semaphore ready
-  xSemaphoreGive(xBinarySemaphoreInternet);
 
   // Tạo task LCD trước
   xTaskCreate(wifi_connect_task, "WiFi Connect", 4096, NULL, 1, NULL);
@@ -29,10 +28,11 @@ void setup()
   xTaskCreate(temp_humi_monitor, "Sensor", 4096, NULL, 1, NULL);
 
   // LED task
-  // xTaskCreate(led_blinky, "LED", 4096, NULL, 1, NULL);
-  // xTaskCreate(neo_blinky, "NeoPixel", 4096, NULL, 1, NULL);
-  // xTaskCreate(lcd_display, "LCD", 4096, NULL, 1, NULL);
+  xTaskCreate(led_blinky, "LED", 4096, NULL, 1, NULL);
+  xTaskCreate(neo_blinky, "NeoPixel", 4096, NULL, 1, NULL);
+  xTaskCreate(lcd_display, "LCD", 4096, NULL, 1, NULL);
   xTaskCreate(coreiot_task, "CoreIOT", 8192, NULL, 1, NULL);
+  // xTaskCreate(tiny_ml_task, "TinyML", 8192, NULL, 1, NULL);
 }
 
 void loop()

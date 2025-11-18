@@ -132,16 +132,14 @@ void coreiot_task(void *pvParameters)
 {
   // Chờ WiFi
   xSemaphoreTake(xBinarySemaphoreInternet, portMAX_DELAY);
-
+  client.setServer(coreIOT_Server, mqttPort);
+  client.setCallback(callback);
   String clientId = "ESP32Client-" + String(random(0xffff), HEX);
   if (!client.connect(clientId.c_str(), coreIOT_Token, NULL))
   {
     Serial.println("MQTT connect failed");
     vTaskDelay(pdMS_TO_TICKS(5000));
   }
-
-  client.setServer(coreIOT_Server, mqttPort);
-  client.setCallback(callback);
 
   SensorData recv;
   StaticJsonDocument<128> doc;
@@ -154,11 +152,14 @@ void coreiot_task(void *pvParameters)
 
     client.loop();
 
-    if (xQueueReceive(xQueueSensor, &recv, 0) == pdPASS)
+    if (xSemaphoreTake(xSensorMutex, portMAX_DELAY) == pdTRUE)
     {
+      recv = data;
+      xSemaphoreGive(xSensorMutex);
       doc.clear();
       doc["temperature"] = recv.temperature;
       doc["humidity"] = recv.humidity;
+      Serial.printf("[CoreIOT] T=%.1f H=%.1f \n", recv.temperature, recv.humidity);
       serializeJson(doc, buffer);
 
       if (client.publish("v1/devices/me/telemetry", buffer))
