@@ -14,8 +14,8 @@ unsigned long connect_start_ms = 0;
 bool connecting = false;
 
 String mainPage() {
-  float temperature = glob_temperature;
-  float humidity    = glob_humidity; // nếu bạn chưa có biến này, giữ nguyên glob_temperature
+  float temperature = data.temperature;
+  float humidity    = data.humidity; // nếu bạn chưa có biến này, giữ nguyên glob_temperature
   String led1 = led1_state ? "ON" : "OFF";
   String led2 = led2_state ? "ON" : "OFF";
 
@@ -36,84 +36,102 @@ String mainPage() {
         --radius:22px;
         --shadow:0 10px 25px rgba(0,0,0,.18);
       }
-      *{box-sizing:border-box}
+      *{box-sizing:border-box;margin:0;padding:0}
+
       html,body{height:100%}
       body{
-        margin:0; font-family:system-ui,Segoe UI,Arial; background:var(--bg);
-        display:flex; justify-content:center; align-items:flex-start; overflow:hidden;
+        font-family:system-ui,Segoe UI,Arial;
+        background:var(--bg);
+        display:flex; justify-content:center; 
+        align-items:flex-start;
+        overflow-x:hidden;
       }
-      /* giữ nguyên 1 trang, scale 90% như yêu cầu */
+
+      /* Responsive container */
       .wrap{
-        width:1180px; padding:18px 18px 26px;
-        transform:scale(.9); transform-origin: top center;
+        width:100%;
+        max-width:1180px;
+        padding:16px;
+        margin-top:12px;
       }
+
+      /* Grid responsive */
       .row{display:grid; gap:18px}
-      .row.top{grid-template-columns:1fr 1fr; margin-bottom:18px}
+      .row.top{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+      .row.cards{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+
       .kpi{
-        color:#fff; border-radius:26px; box-shadow:var(--shadow); position:relative; overflow:hidden;
-        min-height:150px; display:flex; align-items:center; padding:26px 32px;
+        color:#fff; border-radius:26px; box-shadow:var(--shadow);
+        display:flex; align-items:center; padding:24px; min-height:140px;
       }
       .kpi .icon{
-        width:120px; height:120px; border-radius:60px; background:rgba(255,255,255,.18);
-        margin-right:26px; display:flex; align-items:center; justify-content:center; font-size:44px;
-        box-shadow:inset 0 10px 30px rgba(0,0,0,.15);
+        width:90px;height:90px;border-radius:50%;
+        background:rgba(255,255,255,.18);
+        display:flex;align-items:center;justify-content:center;
+        font-size:40px;margin-right:20px;
       }
-      .kpi .title{font-weight:800; letter-spacing:.5px; opacity:.95}
-      .kpi .val{font-size:48px; font-weight:900; margin-top:8px}
+
+      .kpi .title{font-weight:800; opacity:.95}
+      .kpi .val{font-size:38px; font-weight:900; margin-top:6px}
+
       .temp{background:linear-gradient(135deg,var(--orange1),var(--orange2))}
       .hum {background:linear-gradient(135deg,var(--blue1),var(--blue2))}
 
-      .row.cards{grid-template-columns:1fr 1fr 1fr}
       .card{
-        background:#0b4a75; border-radius:30px; color:#e9f4ff; box-shadow:var(--shadow);
-        padding:28px; text-align:center; position:relative; min-height:360px;
+        background:#0b4a75; border-radius:30px; color:#e9f4ff; 
+        box-shadow:var(--shadow);
+        padding:22px; text-align:center; min-height:300px;
       }
+
       .card .bulb{
-        width:120px; height:120px; border-radius:60px; background:#3d4a57; margin:0 auto 14px;
-        display:flex; align-items:center; justify-content:center; font-size:44px; color:#f4f4f4;
-        box-shadow:inset 0 8px 24px rgba(0,0,0,.18);
+        width:100px;height:100px;border-radius:50%;
+        background:#3d4a57;margin:0 auto 10px;
+        display:flex;align-items:center;justify-content:center;
+        font-size:42px;
       }
-      .card .name{font-size:28px; font-weight:800; letter-spacing:.6px; margin-top:6px}
-      .state{font-size:36px; font-weight:900; margin:18px 0 10px}
+
+      .card .name{font-size:24px;font-weight:800;margin-top:6px}
+      .state{font-size:28px;font-weight:900;margin:15px 0 8px}
+
       .btn{
-        display:inline-block; border:none; padding:14px 22px; border-radius:14px; font-size:18px;
-        margin:10px 8px 0; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease, opacity .2s;
-        box-shadow:0 6px 16px rgba(0,0,0,.18); color:#fff;
+        border:none; padding:12px 18px; border-radius:14px; font-size:16px;
+        margin:10px 8px 0; cursor:pointer;
+        transition:transform .12s ease;
+        box-shadow:0 6px 16px rgba(0,0,0,.18); 
+        color:#fff; display:inline-block;
       }
       .btn:hover{transform:scale(1.05)}
-      .btn:active{transform:scale(.98)}
       .btn-red{background:var(--btn-red)}
       .btn-dark{background:var(--btn-dark)}
-      .btn-wide{padding:16px 30px; font-weight:700}
-      .footer{display:flex; justify-content:center; gap:18px; margin-top:16px}
+      .btn-wide{padding:14px 24px; font-weight:700}
 
-      /* Color Picker */
+      /* NeoPixel */
       .picker-box{
-        width:140px; height:56px; border-radius:12px; background:#00ff3a; margin:22px auto 0;
-        border:6px solid #e6eef7; box-shadow:var(--shadow); cursor:pointer;
+        width:120px;height:50px;border-radius:12px; background:#00ff3a;
+        margin:18px auto 0;
+        border:5px solid #e6eef7; box-shadow:var(--shadow); cursor:pointer;
       }
       .palette{
         position:absolute; left:50%; transform:translateX(-50%);
-        bottom:28px; width:320px; background:#143e5f; border-radius:18px; padding:14px;
-        box-shadow:var(--shadow); display:none;
+        bottom:28px; width:260px; 
+        background:#143e5f;border-radius:18px;padding:12px;
+        display:none; box-shadow:var(--shadow);
       }
       .palette.show{display:block}
-      .grid{
-        display:grid; grid-template-columns:repeat(8, 1fr); gap:8px;
-      }
-      .sw{width:32px; height:32px; border-radius:8px; cursor:pointer; border:2px solid rgba(255,255,255,.5)}
-      .picker-title{font-weight:800; letter-spacing:.6px; color:#cfe7ff; margin-bottom:10px; font-size:24px}
-      .neo-title{font-size:24px; font-weight:800; letter-spacing:.6px; color:#cfe7ff; margin-bottom:12px}
 
-      /* top settings button */
+      .grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+      .sw{width:26px;height:26px;border-radius:6px;cursor:pointer;border:2px solid rgba(255,255,255,.5)}
+
+      .picker-title{font-size:20px;font-weight:800;color:#cfe7ff;margin-bottom:10px}
+      .neo-title{font-size:20px;font-weight:800;color:#cfe7ff;margin-bottom:10px}
+
       #settings{
-        position:fixed; right:16px; top:14px; background:#007bff; color:#fff; border:none;
-        border-radius:10px; padding:10px 14px; cursor:pointer; box-shadow:var(--shadow);
-        transition:transform .12s ease;
+        position:fixed; right:16px; top:14px;
+        background:#007bff;color:#fff;border:none;
+        border-radius:10px;padding:10px 14px;cursor:pointer;
+        box-shadow:var(--shadow);
       }
-      #settings:hover{transform:scale(1.05)}
-      /* nhãn nhỏ góc KPI */
-      .unit{opacity:.95; font-weight:700}
+
     </style>
   </head>
   <body>
@@ -418,30 +436,32 @@ String settingsPage() {
       fetch('/connect?ssid='+encodeURIComponent(ssid)+'&pass='+encodeURIComponent(pass))
         .then(r=>r.text())
         .then(text=>{
-          btn.disabled = false;
-          btn.innerHTML = oldHTML;
+          // Hiển thị “đang kết nối…”
+          toast.className = 'toast show';
+          toast.textContent = 'Đang kết nối Wi-Fi...';
 
-          // Hiển thị message + toast
-          msg.textContent = text;
-          if(/ok|success|connected|thanh cong/i.test(text)){
-            toast.className = 'toast show';
-            toast.textContent = 'Kết nối Wi-Fi thành công!';
-            setTimeout(()=>{ toast.classList.remove('show'); }, 2200);
-            // Tùy ý: tự quay lại dashboard sau 1.5s
-            setTimeout(()=>{ window.location = '/'; }, 1500);
-          }else{
-            toast.className = 'toast error show';
-            toast.textContent = 'Kết nối thất bại. Kiểm tra SSID/mật khẩu.';
-            setTimeout(()=>{ toast.classList.remove('show'); }, 2500);
-          }
+          // bắt đầu kiểm tra trạng thái mỗi 1 giây
+          let check = setInterval(()=>{
+            fetch('/wifi_status')
+              .then(r=>r.text())
+              .then(st=>{
+                if(st === 'connected'){
+                  clearInterval(check);
+                  toast.textContent = 'Kết nối thành công!';
+                  setTimeout(()=>{ window.location='/'; }, 1200);
+                }
+                if(st === 'failed'){
+                  clearInterval(check);
+                  toast.className = 'toast error show';
+                  toast.textContent = 'Kết nối thất bại. Kiểm tra SSID/mật khẩu.';
+                }
+              });
+          }, 1000);
+
         })
         .catch(err=>{
-          btn.disabled = false;
-          btn.innerHTML = oldHTML;
-          msg.textContent = "Lỗi kết nối: " + err;
           toast.className = 'toast error show';
           toast.textContent = 'Không gửi được yêu cầu đến thiết bị.';
-          setTimeout(()=>{ toast.classList.remove('show'); }, 2500);
         });
     };
   </script>
@@ -517,13 +537,24 @@ void handleToggle() {
 }
 
 void handleSensors() {
-  float t = glob_temperature;
-  float h = glob_humidity;
+  float t = data.temperature;
+  float h = data.humidity;
   String json = "{\"temp\":"+String(t)+",\"hum\":"+String(h)+"}";
   server.send(200, "application/json", json);
 }
 
 void handleSettings() { server.send(200, "text/html; charset=utf-8", settingsPage()); }
+
+void handleWifiStatus() {
+  if (WiFi.status() == WL_CONNECTED) {
+    server.send(200, "text/plain", "connected");
+  } else if (connecting) {
+    server.send(200, "text/plain", "connecting");
+  } else {
+    server.send(200, "text/plain", "failed");
+  }
+}
+
 
 void handleConnect() {
   wifi_ssid = server.arg("ssid");
@@ -544,12 +575,13 @@ void setupServer() {
   server.on("/neopixel", HTTP_GET, handleNeopixel); //add
   server.on("/sensors", HTTP_GET, handleSensors);
   server.on("/settings", HTTP_GET, handleSettings);
+  server.on("/wifi_status", HTTP_GET, handleWifiStatus);
   server.on("/connect", HTTP_GET, handleConnect);
   server.begin();
 }
 
 void startAP() {
-  WiFi.mode(WIFI_AP);
+  WiFi.mode(WIFI_AP_STA);
   WiFi.softAP(ssid.c_str(), password.c_str());
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
@@ -558,7 +590,6 @@ void startAP() {
 }
 
 void connectToWiFi() {
-  WiFi.mode(WIFI_STA);
   WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
   Serial.print("Connecting to: ");
   Serial.print(wifi_ssid.c_str());

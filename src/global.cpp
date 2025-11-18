@@ -2,9 +2,9 @@
 float glob_temperature = 0;
 float glob_humidity = 0;
 
-String ssid = "ESP32-YOUR NETWORK HERE!!!";
+String ssid = "ESP32-Baobao";
 String password = "12345678";
-String wifi_ssid = "ACLAB";
+String wifi_ssid = "123";
 String wifi_password = "ACLAB2023";
 boolean isWifiConnected = false;
 SemaphoreHandle_t xBinarySemaphoreInternet;
