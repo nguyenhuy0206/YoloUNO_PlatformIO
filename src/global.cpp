@@ -2,7 +2,7 @@
 float glob_temperature = 30;
 float glob_humidity = 70;
 
-String ssid = "ESP32-YOUR NETWORK HERE!!!";
+String ssid = "ESP32-MH!!!";
 String password = "12345678";
 String wifi_ssid = "ACLAB";
 String wifi_password = "ACLAB2023";

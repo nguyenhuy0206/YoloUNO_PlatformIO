@@ -1,6 +1,17 @@
 #include "mainserver.h"
 #include <WiFi.h>
 #include <WebServer.h>
+#include <Adafruit_NeoPixel.h>
+#include <Arduino.h>
+#include "global.h"
+
+#define LED1_PIN 48
+#define LED2_PIN 47
+
+#define NEO_PIN 45
+#define NUM_PIXELS 8
+
+Adafruit_NeoPixel strip(NUM_PIXELS, NEO_PIN, NEO_GRB + NEO_KHZ800);
 
 bool led1_state = false;
 bool led2_state = false;
@@ -8,18 +19,17 @@ bool isAPMode = true;
 
 WebServer server(80);
 
-
-
 unsigned long connect_start_ms = 0;
 bool connecting = false;
 
-String mainPage() {
-  float temperature = glob_temperature;
-  float humidity    = glob_humidity; // nếu bạn chưa có biến này, giữ nguyên glob_temperature
-  String led1 = led1_state ? "ON" : "OFF";
-  String led2 = led2_state ? "ON" : "OFF";
+String mainPage()
+{
+    float temperature = data.temperature;
+    float humidity = data.humidity;
+    String led1 = led1_state ? "ON" : "OFF";
+    String led2 = led2_state ? "ON" : "OFF";
 
-  return R"rawliteral(
+    return R"rawliteral(
   <!DOCTYPE html>
   <html>
   <head>
@@ -127,14 +137,16 @@ String mainPage() {
           <div class="icon">🌡️</div>
           <div>
             <div class="title">TEMPERATURE</div>
-            <div class="val"><span id="temp">)rawliteral" + String(temperature,1) + R"rawliteral(</span> <span class="unit">°C</span></div>
+            <div class="val"><span id="temp">)rawliteral" +
+           String(temperature, 1) + R"rawliteral(</span> <span class="unit">°C</span></div>
           </div>
         </div>
         <div class="kpi hum">
           <div class="icon">💧</div>
           <div>
             <div class="title">HUMIDITY</div>
-            <div class="val"><span id="hum">)rawliteral" + String(humidity,1) + R"rawliteral(</span> <span class="unit">%</span></div>
+            <div class="val"><span id="hum">)rawliteral" +
+           String(humidity, 1) + R"rawliteral(</span> <span class="unit">%</span></div>
           </div>
         </div>
       </div>
@@ -145,7 +157,8 @@ String mainPage() {
         <div class="card" id="card1">
           <div class="bulb">💡</div>
           <div class="name">LED 1</div>
-          <div class="state" id="s1">)rawliteral" + led1 + R"rawliteral(</div>
+          <div class="state" id="s1">)rawliteral" +
+           led1 + R"rawliteral(</div>
           <div>
             <button class="btn btn-red btn-wide"  onclick="setLED(1,'on')">Turn ON</button>
             <button class="btn btn-dark btn-wide" onclick="setLED(1,'off')">Turn OFF</button>
@@ -156,7 +169,8 @@ String mainPage() {
         <div class="card" id="card2">
           <div class="bulb">💡</div>
           <div class="name">LED 2</div>
-          <div class="state" id="s2">)rawliteral" + led2 + R"rawliteral(</div>
+          <div class="state" id="s2">)rawliteral" +
+           led2 + R"rawliteral(</div>
           <div>
             <button class="btn btn-red btn-wide"  onclick="setLED(2,'on')">Turn ON</button>
             <button class="btn btn-dark btn-wide" onclick="setLED(2,'off')">Turn OFF</button>
@@ -263,9 +277,9 @@ String mainPage() {
   )rawliteral";
 }
 
-
-String settingsPage() {
-  return R"rawliteral(
+String settingsPage()
+{
+    return R"rawliteral(
 <!DOCTYPE html>
 <html>
 <head>
@@ -450,164 +464,211 @@ String settingsPage() {
 )rawliteral";
 }
 
-
 // ========== Handlers ==========
 void handleRoot() { server.send(200, "text/html; charset=utf-8", mainPage()); }
 
-void handleSet() {
-  int led = server.arg("led").toInt();
-  String state = server.arg("state");  // "on" hoặc "off"
-  state.toLowerCase();
+void handleSet()
+{
+    int led = server.arg("led").toInt();
+    String state = server.arg("state");
+    state.toLowerCase();
+    bool value = (state == "on");
 
-  bool value = (state == "on");
+    if (led == 1)
+    {
+        led1_state = value;
+        digitalWrite(LED1_PIN, led1_state ? HIGH : LOW);
+    }
+    else if (led == 2)
+    {
+        led2_state = value;
+        digitalWrite(LED2_PIN, led2_state ? HIGH : LOW);
+    }
 
-  if (led == 1) {
+    String json = "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") +
+                  "\",\"led2\":\"" + String(led2_state ? "ON" : "OFF") + "\"}";
+    server.send(200, "application/json", json);
+}
+
+void handleSetAll()
+{
+    String state = server.arg("state");
+    state.toLowerCase();
+    bool value = (state == "on");
+
     led1_state = value;
-    Serial.print("LED1 -> ");
-    Serial.println(led1_state ? "ON" : "OFF");
-    // TODO: thêm YOUR CODE TO CONTROL LED1 ở đây, ví dụ:
-    // digitalWrite(LED1_PIN, led1_state ? HIGH : LOW);
-  } else if (led == 2) {
     led2_state = value;
-    Serial.print("LED2 -> ");
-    Serial.println(led2_state ? "ON" : "OFF");
-    // TODO: YOUR CODE TO CONTROL LED2
-  }
 
-  String json = "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") +
-                "\",\"led2\":\"" + String(led2_state ? "ON" : "OFF") + "\"}";
-  server.send(200, "application/json", json);
-}
-void handleSetAll() {
-  String state = server.arg("state");  // "on" hoặc "off"
-  state.toLowerCase();
-  bool value = (state == "on");
+    digitalWrite(LED1_PIN, led1_state ? HIGH : LOW);
+    digitalWrite(LED2_PIN, led2_state ? HIGH : LOW);
 
-  led1_state = value;
-  led2_state = value;
+    Serial.print("ALL LEDs -> ");
+    Serial.println(value ? "ON" : "OFF");
 
-  Serial.print("ALL LEDs -> ");
-  Serial.println(value ? "ON" : "OFF");
-  // TODO: set luôn GPIO thực tế nếu cần
-
-  String json = "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") +
-                "\",\"led2\":\"" + String(led2_state ? "ON" : "OFF") + "\"}";
-  server.send(200, "application/json", json);
-}
-void handleNeopixel() {
-  String hex = server.arg("hex");  // dạng "#RRGGBB"
-  Serial.print("NEOPIXEL color: ");
-  Serial.println(hex);
-  // TODO: parse hex -> R,G,B rồi set NeoPixel
-  server.send(200, "text/plain", "OK");
-}
-void handleToggle() {
-  int led = server.arg("led").toInt();
-  if (led == 1) {
-    led1_state = !led1_state;
-    Serial.println("YOUR CODE TO CONTROL LED1");
-  }
-  else if (led == 2){
-    led2_state = !led2_state;
-    Serial.println("YOUR CODE TO CONTROL LED2");
-  }
-  server.send(200, "application/json",
-    "{\"led1\":\"" + String(led1_state ? "ON":"OFF") +
-    "\",\"led2\":\"" + String(led2_state ? "ON":"OFF") + "\"}");
+    String json = "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") +
+                  "\",\"led2\":\"" + String(led2_state ? "ON" : "OFF") + "\"}";
+    server.send(200, "application/json", json);
 }
 
-void handleSensors() {
-  float t = glob_temperature;
-  float h = glob_humidity;
-  String json = "{\"temp\":"+String(t)+",\"hum\":"+String(h)+"}";
-  server.send(200, "application/json", json);
+void handleNeopixel()
+{
+    String hex = server.arg("hex"); // "#RRGGBB"
+    Serial.print("NEOPIXEL color: ");
+    Serial.println(hex);
+
+    if (hex.length() == 7 && hex[0] == '#')
+    {
+        long number = strtol(hex.substring(1).c_str(), NULL, 16);
+        uint8_t r = (number >> 16) & 0xFF;
+        uint8_t g = (number >> 8) & 0xFF;
+        uint8_t b = number & 0xFF;
+
+        for (int i = 0; i < NUM_PIXELS; i++)
+        {
+            strip.setPixelColor(i, strip.Color(r, g, b));
+        }
+        strip.show();
+    }
+
+    server.send(200, "text/plain", "OK");
+}
+
+void handleToggle()
+{
+    int led = server.arg("led").toInt();
+    if (led == 1)
+    {
+        led1_state = !led1_state;
+        digitalWrite(LED1_PIN, led1_state ? HIGH : LOW);
+    }
+    else if (led == 2)
+    {
+        led2_state = !led2_state;
+        digitalWrite(LED2_PIN, led2_state ? HIGH : LOW);
+    }
+
+    server.send(200, "application/json",
+                "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") +
+                    "\",\"led2\":\"" + String(led2_state ? "ON" : "OFF") + "\"}");
+}
+// void handleToggle()
+// {
+//     led1_state = !led1_state;
+//     digitalWrite(LED1_PIN, led1_state ? HIGH : LOW);
+//     Serial.print("LED1 toggled -> ");
+//     Serial.println(led1_state ? "ON" : "OFF");
+
+//     server.send(200, "application/json",
+//                 "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") + "\"}");
+// }
+
+void handleSensors()
+{
+    float t = data.temperature;
+    float h = data.humidity;
+    String json = "{\"temp\":" + String(t) + ",\"hum\":" + String(h) + "}";
+    server.send(200, "application/json", json);
 }
 
 void handleSettings() { server.send(200, "text/html; charset=utf-8", settingsPage()); }
 
-void handleConnect() {
-  wifi_ssid = server.arg("ssid");
-  wifi_password = server.arg("pass");
-  server.send(200, "text/plain", "Connecting....");
-  isAPMode = false;
-  connecting = true;
-  connect_start_ms = millis();
-  connectToWiFi();
+void handleConnect()
+{
+    wifi_ssid = server.arg("ssid");
+    wifi_password = server.arg("pass");
+    server.send(200, "text/plain", "Connecting....");
+    isAPMode = false;
+    connecting = true;
+    connect_start_ms = millis();
+    connectToWiFi();
 }
 
 // ========== WiFi ==========
-void setupServer() {
-  server.on("/", HTTP_GET, handleRoot);
-  server.on("/toggle", HTTP_GET, handleToggle);
-  server.on("/set", HTTP_GET, handleSet);       //add
-  server.on("/set_all", HTTP_GET, handleSetAll);  //add 
-  server.on("/neopixel", HTTP_GET, handleNeopixel); //add
-  server.on("/sensors", HTTP_GET, handleSensors);
-  server.on("/settings", HTTP_GET, handleSettings);
-  server.on("/connect", HTTP_GET, handleConnect);
-  server.begin();
+void setupServer()
+{
+    server.on("/", HTTP_GET, handleRoot);
+    server.on("/toggle", HTTP_GET, handleToggle);
+    server.on("/set", HTTP_GET, handleSet);
+    server.on("/set_all", HTTP_GET, handleSetAll);
+    server.on("/neopixel", HTTP_GET, handleNeopixel);
+    server.on("/sensors", HTTP_GET, handleSensors);
+    server.on("/settings", HTTP_GET, handleSettings);
+    server.on("/connect", HTTP_GET, handleConnect);
+    server.begin();
 }
 
-void startAP() {
-  WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid.c_str(), password.c_str());
-  Serial.print("AP IP address: ");
-  Serial.println(WiFi.softAPIP());
-  isAPMode = true;
-  connecting = false;
+void startAP()
+{
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(ssid.c_str(), password.c_str());
+    Serial.print("AP IP address: ");
+    Serial.println(WiFi.softAPIP());
+    isAPMode = true;
+    connecting = false;
 }
 
-void connectToWiFi() {
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
-  Serial.print("Connecting to: ");
-  Serial.print(wifi_ssid.c_str());
+void connectToWiFi()
+{
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
+    Serial.print("Connecting to: ");
+    Serial.print(wifi_ssid.c_str());
 
-  Serial.print(" Password: ");
-  Serial.print(wifi_password.c_str());
+    Serial.print(" Password: ");
+    Serial.print(wifi_password.c_str());
 }
 
 // ========== Main task ==========
-void main_server_task(void *pvParameters){
-  pinMode(BOOT_PIN, INPUT_PULLUP);
-  startAP();
-  setupServer();
+void main_server_task(void *pvParameters)
+{
+    pinMode(LED1_PIN, OUTPUT);
+    pinMode(LED2_PIN, OUTPUT);
+    startAP();
+    setupServer();
+    digitalWrite(LED1_PIN, HIGH);
 
-  while(1){
-    server.handleClient();
+    while (1)
+    {
+        server.handleClient();
 
-    // BOOT Button to switch to AP Mode
-    if (digitalRead(BOOT_PIN) == LOW) {
-      vTaskDelay(100);
-      if (digitalRead(BOOT_PIN) == LOW) {
-        if (!isAPMode) {
-          startAP();
-          setupServer();
+        // BOOT Button to switch to AP Mode
+        if (digitalRead(BOOT_PIN) == LOW)
+        {
+            vTaskDelay(100);
+            if (digitalRead(BOOT_PIN) == LOW)
+            {
+                if (!isAPMode)
+                {
+                    startAP();
+                    setupServer();
+                }
+            }
         }
-      }
+
+        // STA Mode
+        if (connecting)
+        {
+            if (WiFi.status() == WL_CONNECTED)
+            {
+                Serial.print("STA IP address: ");
+                Serial.println(WiFi.localIP());
+                isWifiConnected = true; // Internet access
+
+                xSemaphoreGive(xBinarySemaphoreInternet);
+
+                isAPMode = false;
+                connecting = false;
+            }
+            else if (millis() - connect_start_ms > 10000)
+            { // timeout 10s
+                Serial.println("WiFi connect failed! Back to AP.");
+                startAP();
+                setupServer();
+                connecting = false;
+                isWifiConnected = false;
+            }
+        }
+
+        vTaskDelay(20); // avoid watchdog reset
     }
-
-    // STA Mode
-    if (connecting) {
-      if (WiFi.status() == WL_CONNECTED) {
-        Serial.print("STA IP address: ");
-        Serial.println(WiFi.localIP());
-        isWifiConnected = true; //Internet access
-
-        xSemaphoreGive(xBinarySemaphoreInternet);
-
-        isAPMode = false;
-        connecting = false;
-         
-      } else if (millis() - connect_start_ms > 10000) { // timeout 10s
-        Serial.println("WiFi connect failed! Back to AP.");
-        startAP();
-        setupServer();
-        connecting = false;
-        isWifiConnected = false;
-      }
-    }
-
-    vTaskDelay(20); // avoid watchdog reset
-  }
 }
