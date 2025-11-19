@@ -14,13 +14,12 @@ void setup()
   Wire.begin(11, 12);
 
   xQueueSensor = xQueueCreate(5, sizeof(SensorData));
+  xSensorMutex = xSemaphoreCreateMutex();
+
   xBinarySemaphoreInternet = xSemaphoreCreateBinary();
   xSemaphoreLed = xSemaphoreCreateBinary();
   xSemaphoreNeoLed = xSemaphoreCreateBinary();
   xSemaphoreLCD = xSemaphoreCreateBinary();
-
-  // Give internet semaphore ready
-  xSemaphoreGive(xBinarySemaphoreInternet);
 
   // Tạo task LCD trước
   // xTaskCreate(wifi_connect_task, "WiFi Connect", 4096, NULL, 1, NULL);
@@ -34,6 +33,7 @@ void setup()
   xTaskCreate(lcd_display, "LCD", 4096, NULL, 1, NULL);
   xTaskCreate(main_server_task, "Main Server", 8192, NULL, 1, NULL);
   xTaskCreate(coreiot_task, "CoreIOT", 8192, NULL, 1, NULL);
+
 }
 
 void loop()
