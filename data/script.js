@@ -1,3 +1,5 @@
+// ========== SIDEBAR & LAYOUT ==========
+
 (function () {
     const sidebar = document.getElementById('sidebar');
     const toggle = document.getElementById('sidebarToggle');
@@ -38,34 +40,50 @@
     // Mobile overlay open/close (optional)
     document.querySelectorAll('.menu-icon, .header .material-icons-outlined').forEach(btn => {
         btn && btn.addEventListener('click', () => {
+            if (!sidebar) return;
             sidebar.classList.toggle('sidebar-open');
             overlay && overlay.classList.toggle('active');
         });
     });
     overlay && overlay.addEventListener('click', () => {
+        if (!sidebar) return;
         sidebar.classList.remove('sidebar-open');
         overlay.classList.remove('active');
     });
 })();
+
+
+// ========== FAKE CARD DATA (WIND / RAIN) ==========
+
 function initFakeCardData() {
     const fakeWindSpeedKmh = 30; // km/h
     const fakeWindSpeedMs = (fakeWindSpeedKmh / 3.6).toFixed(1); // m/s
     const fakeWindDirection = "NE";
     const fakeRain = 36.4;
 
-    document.getElementById("windSpeedValue").textContent = fakeWindSpeedMs + " m/s";
-    document.getElementById("windDirValue").textContent = fakeWindDirection;
-    document.getElementById("rainValue").textContent = fakeRain + " mm";
+    const windSpeedEl = document.getElementById("windSpeedValue");
+    const windDirEl   = document.getElementById("windDirValue");
+    const rainValEl   = document.getElementById("rainValue");
+
+    if (windSpeedEl) windSpeedEl.textContent = fakeWindSpeedMs + " m/s";
+    if (windDirEl)   windDirEl.textContent   = fakeWindDirection;
+    if (rainValEl)   rainValEl.textContent   = fakeRain + " mm";
 }
 
 
+// ========== CHART LOGIC (RAIN / WIND) ==========
 
-// ===== CHART LOGIC =====
 let rainfallChart, windSpeedChart;
 
 function initDynamicCharts() {
-    const rainfallCtx = document.getElementById("rainfallChart").getContext("2d");
-    const windSpeedCtx = document.getElementById("windSpeedChart").getContext("2d");
+    const rainfallCanvas = document.getElementById("rainfallChart");
+    const windSpeedCanvas = document.getElementById("windSpeedChart");
+
+    // Nếu dashboard hiện tại không có biểu đồ thì bỏ qua
+    if (!rainfallCanvas || !windSpeedCanvas || typeof Chart === "undefined") return;
+
+    const rainfallCtx = rainfallCanvas.getContext("2d");
+    const windSpeedCtx = windSpeedCanvas.getContext("2d");
 
     rainfallChart = new Chart(rainfallCtx, {
         type: 'line',
@@ -101,7 +119,8 @@ function initDynamicCharts() {
         options: getChartOptions()
     });
 
-    setInterval(updateCharts, 3000); // Cập nhật mỗi 3 giây
+    // Cập nhật mỗi 3 giây
+    setInterval(updateCharts, 3000);
 }
 
 function getChartOptions() {
@@ -130,6 +149,8 @@ function getChartOptions() {
 let lastTimeLabel = "";
 
 function updateCharts() {
+    if (!rainfallChart || !windSpeedChart) return;
+
     const now = new Date();
     const timeLabel = getRoundedTimeLabel(now); // làm tròn 5 phút
 
@@ -166,7 +187,6 @@ function getRoundedTimeLabel(date) {
     return `${hh}:${mm}`;
 }
 
-
 function appendData(chart, label, value) {
     chart.data.labels.push(label);
     chart.data.datasets[0].data.push(value);
@@ -179,20 +199,201 @@ function appendData(chart, label, value) {
     chart.update();
 }
 
-window.onload = function () {
-    initFakeCardData(); // Hiển thị dữ liệu ảo
-    initDynamicCharts(); // Load biểu đồ
-};
+
+// ========== JS CŨ: LED / SENSOR / NEOPIXEL ==========
+
+// Điều khiển LED bằng API /set và /set_all
+function setLED(id, state) {
+    fetch('/set?led=' + id + '&state=' + state)
+        .then(r => r.json())
+        .then(j => {
+            const s1 = document.getElementById('s1');
+            const s2 = document.getElementById('s2');
+            if (j.led1 && s1) s1.innerText = j.led1;
+            if (j.led2 && s2) s2.innerText = j.led2;
+        })
+        .catch(() => {
+            const s = (state === 'on') ? 'ON' : 'OFF';
+            const s1 = document.getElementById('s1');
+            const s2 = document.getElementById('s2');
+            if (id === 1 && s1) s1.innerText = s;
+            if (id === 2 && s2) s2.innerText = s;
+        });
+}
+
+function setAll(state) {
+    fetch('/set_all?state=' + state)
+        .then(r => r.json())
+        .then(j => {
+            const s1 = document.getElementById('s1');
+            const s2 = document.getElementById('s2');
+            if (j.led1 && s1) s1.innerText = j.led1;
+            if (j.led2 && s2) s2.innerText = j.led2;
+        })
+        .catch(() => {
+            const s = (state === 'on') ? 'ON' : 'OFF';
+            const s1 = document.getElementById('s1');
+            const s2 = document.getElementById('s2');
+            if (s1) s1.innerText = s;
+            if (s2) s2.innerText = s;
+        });
+}
+
+// Polling /sensors để cập nhật temp/hum
+setInterval(() => {
+    fetch('/sensors')
+        .then(res => res.json())
+        .then(d => {
+            if (d.temp !== undefined) {
+                const tempEl = document.getElementById('temp');
+                if (tempEl) tempEl.innerText = d.temp;
+            }
+            if (d.hum !== undefined) {
+                const humEl = document.getElementById('hum');
+                if (humEl) humEl.innerText = d.hum;
+            }
+        })
+        .catch(() => { });
+}, 3000);
+
+// NeoPixel color palette
+const COLORS = [
+    "#000000","#303030","#606060","#909090","#c0c0c0","#e0e0e0","#ffffff","#ff00ff",
+    "#ff0000","#ff4000","#ff8000","#ffbf00","#ffff00","#bfff00","#80ff00","#40ff00",
+    "#00ff00","#00ff40","#00ff80","#00ffbf","#00ffff","#00bfff","#0080ff","#0040ff",
+    "#0000ff","#4000ff","#8000ff","#bf00ff","#ff00bf","#ff0080","#ff0040","#ff8080",
+    "#cc0000","#cc3300","#cc6600","#cc9900","#cccc00","#99cc00","#66cc00","#33cc00",
+    "#00cc00","#00cc33","#00cc66","#00cc99","#00cccc","#0099cc","#0066cc","#0033cc",
+    "#0000cc","#3300cc","#6600cc","#9900cc","#cc00cc","#cc0099","#cc0066","#cc0033",
+    "#ff6666","#ff9966","#ffcc66","#ffff66","#ccff66","#99ff66","#66ff66","#66ffff"
+];
+
+let legacyControlInitialized = false;
+
+function initLegacyControlPage() {
+    const grid = document.getElementById('grid');
+    const palette = document.getElementById('palette');
+    const neo = document.getElementById('neo');
+
+    // Nếu không có các phần tử này thì không phải trang control cũ → bỏ qua
+    if (!grid || !palette || !neo) return;
+
+    if (legacyControlInitialized) return;
+    legacyControlInitialized = true;
+
+    // Tạo palette màu
+    grid.innerHTML = "";
+    COLORS.forEach(hex => {
+        const d = document.createElement('div');
+        d.className = 'sw';
+        d.style.background = hex;
+        d.title = hex;
+        d.onclick = () => pickColor(hex);
+        grid.appendChild(d);
+    });
+
+    // togglePalette được gọi từ onclick trong HTML
+    window.togglePalette = function () {
+        palette.classList.toggle('show');
+    };
+
+    function pickColor(hex) {
+        const swatch = document.getElementById('swatch');
+        if (swatch) swatch.style.background = hex;
+        fetch('/neopixel?hex=' + encodeURIComponent(hex)).catch(() => { });
+        palette.classList.remove('show');
+    }
+
+    // Đóng palette nếu click ra ngoài
+    document.addEventListener('click', (e) => {
+        if (!neo.contains(e.target)) palette.classList.remove('show');
+    });
+}
 
 
+// ========== JS CŨ: WIFI SETTINGS PAGE ==========
+
+function initWifiPage() {
+    const form = document.getElementById('wifiForm');
+    const btn = document.getElementById('btnConnect');
+    const msg = document.getElementById('msg');
+    const toast = document.getElementById('toast');
+    const toggle = document.getElementById('togglePass');
+
+    if (!form || !btn || !msg || !toast || !toggle) return; // không phải trang wifi
+
+    // Toggle hiện/ẩn mật khẩu
+    toggle.onclick = function () {
+        const p = document.getElementById('pass');
+        if (!p) return;
+        p.type = (p.type === 'password') ? 'text' : 'password';
+    };
+
+    form.onsubmit = function (e) {
+        e.preventDefault();
+        const ssid = document.getElementById('ssid').value.trim();
+        const pass = document.getElementById('pass').value;
+
+        // kiểm tra nhanh
+        if (!ssid) { msg.textContent = "Vui lòng nhập SSID."; return; }
+        if (pass.length < 8) { msg.textContent = "Mật khẩu tối thiểu 8 ký tự."; return; }
+
+        // trạng thái loading
+        const oldHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Connecting...';
+        msg.textContent = "";
+
+        fetch('/connect?ssid=' + encodeURIComponent(ssid) + '&pass=' + encodeURIComponent(pass))
+            .then(r => r.text())
+            .then(text => {
+                // Hiển thị “đang kết nối…”
+                toast.className = 'toast show';
+                toast.textContent = 'Đang kết nối Wi-Fi...';
+
+                // bắt đầu kiểm tra trạng thái mỗi 1 giây
+                let check = setInterval(() => {
+                    fetch('/wifi_status')
+                        .then(r => r.text())
+                        .then(st => {
+                            if (st === 'connected') {
+                                clearInterval(check);
+                                toast.textContent = 'Kết nối thành công!';
+                                setTimeout(() => { window.location = '/'; }, 1200);
+                            }
+                            if (st === 'failed') {
+                                clearInterval(check);
+                                toast.className = 'toast error show';
+                                toast.textContent = 'Kết nối thất bại. Kiểm tra SSID/mật khẩu.';
+                                btn.disabled = false;
+                                btn.innerHTML = oldHTML;
+                            }
+                        });
+                }, 1000);
+            })
+            .catch(err => {
+                toast.className = 'toast error show';
+                toast.textContent = 'Không gửi được yêu cầu đến thiết bị.';
+                btn.disabled = false;
+                btn.innerHTML = oldHTML;
+            });
+    };
+}
+
+
+// ========== DEVICE CONTROL MỚI (LED ICON) ==========
 
 function toggleDevice(device, state) {
     // Gửi request tới ESP32 (ví dụ: /?device=led1&state=on)
+    // LƯU Ý: backend của bạn hiện tại dùng /set, /set_all.
+    // Hàm này bạn có thể chỉnh sau cho khớp API, tạm để nguyên như bạn đang dùng.
     fetch(`/?device=${device}&state=${state}`)
         .then(res => res.json())
         .then(data => {
             const statusEl = document.getElementById(`${device}Status`);
             const iconEl = document.getElementById(`${device}Icon`);
+
+            if (!statusEl || !iconEl) return;
 
             // Cập nhật trạng thái UI
             if (state === "on") {
@@ -208,10 +409,23 @@ function toggleDevice(device, state) {
         .catch(err => console.error("Device control error:", err));
 }
 
-// Khi trang load, đảm bảo các icon ở trạng thái tắt
+
+// ========== GLOBAL LOAD INIT ==========
+
 window.addEventListener("load", () => {
+    // Dashboard (wind/rain cards + charts)
+    initFakeCardData();
+    initDynamicCharts();
+
+    // Legacy control page (LED + NeoPixel palette)
+    initLegacyControlPage();
+
+    // Wi-Fi settings page
+    initWifiPage();
+
+    // Khi trang load, đảm bảo các icon ở trạng thái tắt
     ["led1Icon", "led2Icon"].forEach(id => {
-        document.getElementById(id).classList.add("led-off");
+        const el = document.getElementById(id);
+        if (el) el.classList.add("led-off");
     });
 });
-
