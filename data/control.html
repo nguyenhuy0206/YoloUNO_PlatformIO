@@ -245,61 +245,6 @@
         </div>
     </main>
 
-    <script>
-        // Load sidebar layout
-        fetch("sidebar.html")
-            .then(res => res.text())
-            .then(html => {
-                document.getElementById("sidebar-container").innerHTML = html;
-
-                // Tô sáng trang hiện tại
-                const links = document.querySelectorAll(".sidebar-list-item a");
-                links.forEach(link => {
-                    if (window.location.pathname.endsWith(link.getAttribute("href"))) {
-                        link.parentElement.classList.add("active");
-                    }
-                });
-            });
-
-        // Logic điều khiển LED và NeoPixel
-        function toggleDevice(device, state) {
-            fetch(`/?device=${device}&state=${state}`)
-                .then(res => res.json())
-                .then(() => {
-                    const statusEl = document.getElementById(`${device}Status`);
-                    const iconEl = document.getElementById(`${device}Icon`);
-                    if (state === "on") {
-                        statusEl.innerText = "ON";
-                        iconEl.classList.add("led-on");
-                        iconEl.classList.remove("led-off");
-                    } else {
-                        statusEl.innerText = "OFF";
-                        iconEl.classList.add("led-off");
-                        iconEl.classList.remove("led-on");
-                    }
-                })
-                .catch(err => console.error("Device control error:", err));
-        }
-
-        function setNeoColor(color) {
-            fetch(`/?neopixel=${color.substring(1)}`)
-                .then(res => res.json())
-                .then(() => {
-                    document.getElementById("neoStatus").innerText = `Color: ${color.toUpperCase()}`;
-                })
-                .catch(err => console.error("NeoPixel Error:", err));
-        }
-
-        function allOn() {
-            toggleDevice('led1', 'on');
-            toggleDevice('led2', 'on');
-        }
-
-        function allOff() {
-            toggleDevice('led1', 'off');
-            toggleDevice('led2', 'off');
-        }
-    </script>
 </body>
 
 </html>
