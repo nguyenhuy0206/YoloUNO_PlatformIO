@@ -769,6 +769,7 @@ body {
     color: var(--ai-text-light);
 }
 
+
 /* Hiệu ứng chuyển động gradient nhẹ
 @keyframes tempGradient {
     0% {
@@ -797,3 +798,4 @@ body {
         background-position: 0% 50%;
     }
 } */
+

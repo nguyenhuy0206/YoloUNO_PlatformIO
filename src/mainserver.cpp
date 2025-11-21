@@ -90,8 +90,6 @@ void handleSensors()
   server.send(200, "application/json", json);
 }
 
-void handleSettings() { server.send(200, "text/html; charset=utf-8", settingsPage()); }
-
 void handleWifiStatus()
 {
   if (WiFi.status() == WL_CONNECTED)
@@ -153,14 +151,19 @@ bool serveFile(const String &path)
   return true;
 }
 
-// ========== WiFi ==========
-void handleRootPage()
-{ // GET "/"
-  if (!serveFile("/index.html"))
-  {
-    server.send(404, "text/plain", "index.html not found");
+
+void handleRootPage() {     // GET "/"
+  if (WiFi.status() == WL_CONNECTED ) {
+    if (!serveFile("/index.html")) {
+      server.send(404, "text/plain", "index.html not found");
+    }
+  } else {
+    if (!serveFile("/wifi.html")) {
+      server.send(404, "text/plain", "wifi.html not found");
+    }
   }
 }
+
 
 void setupServer()
 {
@@ -211,6 +214,7 @@ void setupServer()
   server.begin();
 }
 
+// ========== WiFi ==========
 void startAP()
 {
   WiFi.mode(WIFI_AP_STA);
