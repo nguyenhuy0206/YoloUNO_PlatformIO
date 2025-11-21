@@ -188,7 +188,7 @@ void coreiot_task(void *pvParameters)
         Serial.println("Failed to publish");
     }
 
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(10000));
   }
   // if (!client.connected())
   //   reconnect();

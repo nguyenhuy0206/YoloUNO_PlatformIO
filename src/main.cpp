@@ -37,7 +37,7 @@ void setup()
   // xTaskCreate(task_pump, "Pump", 4096, NULL, 1, NULL);
   // xTaskCreate(main_server_task, "MainServer", 8192, NULL, 1, NULL);
   xTaskCreate(coreiot_task, "CoreIOT", 8192, NULL, 1, NULL);
-  // xTaskCreate(tiny_ml_task, "TinyML", 8192, NULL, 1, NULL);
+  xTaskCreate(tiny_ml_task, "TinyML", 8192, NULL, 1, NULL);
 }
 
 void loop()

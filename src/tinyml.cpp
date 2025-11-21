@@ -49,25 +49,34 @@ void tiny_ml_task(void *pvParameters)
     setupTinyML();
 
     // === MinMaxScaler parameters (YOUR JSON) ===
-    const float FEATURE_SCALE[2] = { 
-        0.03717472f,      // scale for temperature
-        0.0134228189f     // scale for humidity
+    const float FEATURE_SCALE[2] = {
+        0.03717472f,  // scale for temperature
+        0.0134228189f // scale for humidity
     };
     const float FEATURE_SHIFT[2] = {
-        -0.74721187f,     // shift for temperature
-        -0.24832214f      // shift for humidity
+        -0.74721187f, // shift for temperature
+        -0.24832214f  // shift for humidity
     };
-
+    SensorData recv;
     while (1)
     {
-        float ta = glob_temperature;   // °C
-        float rh = glob_humidity;      // %
+        if (xSemaphoreTake(xSensorMutex, pdMS_TO_TICKS(1000)) == pdTRUE)
+        {
+            recv = data;
+            xSemaphoreGive(xSensorMutex);
+        }
+        float ta = recv.temperature; // °C
+        float rh = recv.humidity;    // %
 
         // ===== 1) CLIP INPUT =====
-        if (ta < 20.1f) ta = 20.1f;
-        if (ta > 47.0f) ta = 47.0f;
-        if (rh < 18.5f) rh = 18.5f;
-        if (rh > 93.0f) rh = 93.0f;
+        if (ta < 20.1f)
+            ta = 20.1f;
+        if (ta > 47.0f)
+            ta = 47.0f;
+        if (rh < 18.5f)
+            rh = 18.5f;
+        if (rh > 93.0f)
+            rh = 93.0f;
 
         // ===== 2) MinMax normalization =====
         float ta_norm = ta * FEATURE_SCALE[0] + FEATURE_SHIFT[0];
@@ -78,31 +87,46 @@ void tiny_ml_task(void *pvParameters)
         input->data.f[1] = rh_norm;
 
         // ===== 4) INFER =====
-        if (interpreter->Invoke() != kTfLiteOk) {
+        if (interpreter->Invoke() != kTfLiteOk)
+        {
             Serial.println("Invoke failed!");
             vTaskDelay(pdMS_TO_TICKS(2000));
             continue;
         }
 
         // ===== 5) READ OUTPUT TENSOR =====
-        float out0 = output->data.f[0];  // Cool
-        float out1 = output->data.f[1];  // Neutral
-        float out2 = output->data.f[2];  // Warm
+        float out0 = output->data.f[0]; // Cool
+        float out1 = output->data.f[1]; // Neutral
+        float out2 = output->data.f[2]; // Warm
 
         // ===== 6) FIND BEST CLASS =====
         float best = out0;
         int best_class = 0;
 
-        if (out1 > best) { best = out1; best_class = 1; }
-        if (out2 > best) { best = out2; best_class = 2; }
+        if (out1 > best)
+        {
+            best = out1;
+            best_class = 1;
+        }
+        if (out2 > best)
+        {
+            best = out2;
+            best_class = 2;
+        }
 
         // ===== 7) MAP CLASS → TEXT =====
-        const char* comfort_text;
+        const char *comfort_text;
         switch (best_class)
         {
-            case 0: comfort_text = "A little bit cool"; break;
-            case 1: comfort_text = "Neutral"; break;
-            case 2: comfort_text = "Quite hot"; break;
+        case 0:
+            comfort_text = "A little bit cool";
+            break;
+        case 1:
+            comfort_text = "Neutral";
+            break;
+        case 2:
+            comfort_text = "Quite hot";
+            break;
         }
 
         // ===== 8) PRINT FULL INFO =====
@@ -120,8 +144,10 @@ void tiny_ml_task(void *pvParameters)
 
         // Raw output (debug)
         Serial.print("  → raw probs: ");
-        Serial.print(out0, 4); Serial.print(", ");
-        Serial.print(out1, 4); Serial.print(", ");
+        Serial.print(out0, 4);
+        Serial.print(", ");
+        Serial.print(out1, 4);
+        Serial.print(", ");
         Serial.print(out2, 4);
         Serial.println();
 
