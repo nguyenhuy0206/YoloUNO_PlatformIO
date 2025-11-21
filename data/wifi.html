@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ESP32 Wi-Fi & IoT Setup</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #78a7c7, #e8e8c0);
+      font-family: 'Segoe UI', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .overlay {
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 600px;
+    }
+
+    h3.wifi-title {
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 25px;
+      color: #003366;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      color: #002244;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 10px;
+      background-color: #003366;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn-primary:hover {
+      background-color: #005599;
+    }
+
+    .alert-custom {
+      background-color: #ffe0e0;
+      border: 1px solid #ffaaaa;
+      color: #990000;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="overlay">
+    <h3 class="wifi-title">CONFIG ESP32</h3>
+
+    <form action="/connect" method="get">
+      <label>Wi-Fi</label>
+      <select name="ssid" required>
+        {{options}}
+      </select>
+
+      <label>Password Wi-Fi</label>
+      <input type="password" name="pass" placeholder="Enter password Wi-Fi" />
+
+      <label>Server IoT</label>
+      <input type="text" name="token" placeholder="Access Token" />
+
+      <label>Sending frequency of data</label>
+      <input type="number" min="1" name="frequency" placeholder="Ex: 10" />
+
+      <label>Telemetry</label>
+      <input type="text" name="telemetry" placeholder="Telemetry" />
+
+      <button type="submit" class="btn-primary">SAVE</button>
+    </form>
+  </div>
+</body>
+
+</html>

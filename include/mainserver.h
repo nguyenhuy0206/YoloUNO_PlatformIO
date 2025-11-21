@@ -9,7 +9,11 @@
 #define LED2_PIN 41
 #define BOOT_PIN 0
 //extern WebServer server;
-
+#include <SPIFFS.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <ArduinoJson.h>
+#include <FS.h> 
 //extern bool isAPMode;
 
 
