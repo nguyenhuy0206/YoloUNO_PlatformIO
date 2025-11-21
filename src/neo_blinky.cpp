@@ -23,6 +23,6 @@ void neo_blinky(void *pvParameters)
             strip.show();
             Serial.printf("[NeoPixel] Color updated @H=%.1f%%\n", recv.humidity);
         }
-        vTaskDelay(10000);
+        vTaskDelay(1000);
     }
 }

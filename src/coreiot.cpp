@@ -1,8 +1,8 @@
 #include "coreiot.h"
-
+#include "control.h"
 // ----------- CONFIGURE THESE! -----------
 const char *coreIOT_Server = "app.coreiot.io";
-const char *coreIOT_Token = "oEFW8VVF96o8qkNI0ylb"; // Device Access Token
+const char *coreIOT_Token = "oghoslDWPIEMWW0gg5PT"; // Device Access Token
 const int mqttPort = 1883;
 // ----------------------------------------
 
@@ -31,53 +31,75 @@ void reconnect()
     }
   }
 }
-
+bool pumpState = false;
+bool fanState = false;
 void callback(char *topic, byte *payload, unsigned int length)
 {
-  Serial.print("Message arrived [");
+  Serial.print("RPC arrived [");
   Serial.print(topic);
   Serial.println("] ");
 
-  // Allocate a temporary buffer for the message
-  char message[length + 1];
-  memcpy(message, payload, length);
-  message[length] = '\0';
+  char msg[length + 1];
+  memcpy(msg, payload, length);
+  msg[length] = '\0';
+
   Serial.print("Payload: ");
-  Serial.println(message);
+  Serial.println(msg);
 
-  // Parse JSON
   StaticJsonDocument<256> doc;
-  DeserializationError error = deserializeJson(doc, message);
-
-  if (error)
+  if (deserializeJson(doc, msg))
   {
-    Serial.print("deserializeJson() failed: ");
-    Serial.println(error.c_str());
+    Serial.println("JSON parse error");
     return;
   }
 
-  const char *method = doc["method"];
-  if (strcmp(method, "setStateLED") == 0)
-  {
-    // Check params type (could be boolean, int, or string according to your RPC)
-    // Example: {"method": "setValueLED", "params": "ON"}
-    const char *params = doc["params"];
+  String method = doc["method"];
+  String requestID = String(topic).substring(String(topic).lastIndexOf('/') + 1);
 
-    if (strcmp(params, "ON") == 0)
-    {
-      Serial.println("Device turned ON.");
-      // TODO
-    }
-    else
-    {
-      Serial.println("Device turned OFF.");
-      // TODO
-    }
-  }
-  else
+  // ------------------ GET STATE ------------------
+  if (method == "getPumpState")
   {
-    Serial.print("Unknown method: ");
-    Serial.println(method);
+    StaticJsonDocument<64> resp;
+    resp["state"] = pumpState;
+
+    char buf[64];
+    serializeJson(resp, buf);
+
+    client.publish(("v1/devices/me/rpc/response/" + requestID).c_str(), buf);
+    Serial.println("Responded getState()");
+    return;
+  }
+  if (method == "getFanState")
+  {
+    StaticJsonDocument<64> resp;
+    resp["state"] = fanState;
+
+    char buf[64];
+    serializeJson(resp, buf);
+
+    client.publish(("v1/devices/me/rpc/response/" + requestID).c_str(), buf);
+    Serial.println("Responded getState()");
+    return;
+  }
+
+  // ------------------ SET STATE -------------------
+  if (method == "setPumpState")
+  {
+    pumpState = doc["params"];
+    digitalWrite(PUMP_PIN, pumpState);
+
+    client.publish(("v1/devices/me/rpc/response/" + requestID).c_str(), "{}");
+    Serial.printf("Pump → %s\n", pumpState ? "ON" : "OFF");
+    return;
+  }
+  if (method == "setFanState")
+  {
+    fanState = doc["params"];
+    digitalWrite(FAN_PIN, fanState);
+
+    client.publish(("v1/devices/me/rpc/response/" + requestID).c_str(), "{}");
+    Serial.printf("Fan → %s\n", fanState ? "ON" : "OFF");
+    return;
   }
 }
 
@@ -92,18 +114,16 @@ void setup_coreiot()
   //   delay(500);
   //   Serial.print(".");
   // }
-
-  while (1)
+  pinMode(PUMP_PIN, OUTPUT);
+  pinMode(FAN_PIN, OUTPUT);
+  WiFi.begin(wifi_ssid, wifi_password);
+  Serial.print("Connecting");
+  while (WiFi.status() != WL_CONNECTED)
   {
-    if (xSemaphoreTake(xBinarySemaphoreInternet, portMAX_DELAY))
-    {
-      break;
-    }
-    delay(500);
     Serial.print(".");
+    delay(500);
   }
-
-  Serial.println(" Connected!");
+  Serial.println(" WiFi OK");
 
   client.setServer(coreIOT_Server, mqttPort);
   client.setCallback(callback);
@@ -131,20 +151,20 @@ void wifi_connect_task(void *pvParameters)
 void coreiot_task(void *pvParameters)
 {
   // Chờ WiFi
-  xSemaphoreTake(xBinarySemaphoreInternet, portMAX_DELAY);
-  client.setServer(coreIOT_Server, mqttPort);
-  client.setCallback(callback);
-  String clientId = "ESP32Client-" + String(random(0xffff), HEX);
-  if (!client.connect(clientId.c_str(), coreIOT_Token, NULL))
-  {
-    Serial.println("MQTT connect failed");
-    vTaskDelay(pdMS_TO_TICKS(5000));
-  }
+  // xSemaphoreTake(xBinarySemaphoreInternet, portMAX_DELAY);
+  // client.setServer(coreIOT_Server, mqttPort);
+  // client.setCallback(callback);
+  // String clientId = "ESP32Client-" + String(random(0xffff), HEX);
+  // if (!client.connect(clientId.c_str(), coreIOT_Token, NULL))
+  // {
+  //   Serial.println("MQTT connect failed");
+  //   vTaskDelay(pdMS_TO_TICKS(5000));
+  // }
 
   SensorData recv;
   StaticJsonDocument<128> doc;
   char buffer[128];
-
+  setup_coreiot();
   while (1)
   {
     if (!client.connected())
@@ -168,6 +188,10 @@ void coreiot_task(void *pvParameters)
         Serial.println("Failed to publish");
     }
 
-    vTaskDelay(pdMS_TO_TICKS(10000));
+    vTaskDelay(pdMS_TO_TICKS(1000));
   }
+  // if (!client.connected())
+  //   reconnect();
+
+  // client.loop();
 }

@@ -28,6 +28,13 @@ void led_blinky(void *pvParameters)
 
       Serial.printf("[LED] Blinked @T=%.1f°C\n", recv.temperature);
     }
-    vTaskDelay(pdMS_TO_TICKS(10000));
+    vTaskDelay(pdMS_TO_TICKS(1000));
   }
+}
+void setFanSpeed(int percent)
+{
+  // 0-100%
+  percent = constrain(percent, 0, 100);
+  int duty = map(percent, 0, 100, 0, 1023);
+  ledcWrite(0, duty);
 }

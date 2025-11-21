@@ -40,6 +40,6 @@ void temp_humi_monitor(void *pvParameters)
 
         Serial.printf("[Sensor] Sent to Queue: T=%.1f H=%.1f\n", data.temperature, data.humidity);
 
-        vTaskDelay(10000);
+        vTaskDelay(1000);
     }
 }
