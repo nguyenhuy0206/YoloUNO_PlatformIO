@@ -16,3 +16,8 @@ QueueHandle_t xQueueSensor;
 SemaphoreHandle_t xSemaphoreLed;
 SemaphoreHandle_t xSemaphoreNeoLed;
 SemaphoreHandle_t xSemaphoreLCD;
+
+bool led1_state = false;
+bool led2_state = false;
+bool pump_state = false;
+bool fan_state = false;

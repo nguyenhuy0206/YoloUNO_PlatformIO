@@ -28,4 +28,10 @@ extern String wifi_password;
 extern boolean isWifiConnected;
 
 extern SemaphoreHandle_t xBinarySemaphoreInternet;
+
+extern bool pump_state;
+extern bool fan_state;
+extern bool led1_state;
+extern bool led2_state;
+
 #endif

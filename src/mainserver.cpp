@@ -1,42 +1,73 @@
 #include "mainserver.h"
 #include <WiFi.h>
 #include <WebServer.h>
+#include "led_blinky.h"
+#include "neo_blinky.h"
+#include "control.h"
+#include "coreiot.h"
 
-bool led1_state = false;
-bool led2_state = false;
 bool isAPMode = true;
+Adafruit_NeoPixel strip(LED_COUNT, NEO_PIN, NEO_GRB + NEO_KHZ800);
 
 WebServer server(80);
 
 unsigned long connect_start_ms = 0;
 bool connecting = false;
+void handleState()
+{
+  StaticJsonDocument<128> doc;
+  doc["led1"] = led1_state ? "ON" : "OFF";
+  doc["led2"] = led2_state ? "ON" : "OFF";
+  doc["fan"] = fan_state ? "ON" : "OFF";
+  doc["pump"] = pump_state ? "ON" : "OFF";
+
+  char buffer[128];
+  serializeJson(doc, buffer);
+  server.send(200, "application/json", buffer);
+}
 
 void handleSet()
 {
-  int led = server.arg("led").toInt();
-  String state = server.arg("state"); // "on" hoặc "off"
+  String ledStr = server.arg("led");
+  String state = server.arg("state");
   state.toLowerCase();
 
   bool value = (state == "on");
 
-  if (led == 1)
+  if (ledStr == "1")
   {
     led1_state = value;
+    digitalWrite(LED1_PIN, led1_state ? HIGH : LOW);
     Serial.print("LED1 -> ");
     Serial.println(led1_state ? "ON" : "OFF");
-    // TODO: thêm YOUR CODE TO CONTROL LED1 ở đây, ví dụ:
-    // digitalWrite(LED1_PIN, led1_state ? HIGH : LOW);
   }
-  else if (led == 2)
+  else if (ledStr == "2")
   {
     led2_state = value;
+    digitalWrite(LED2_PIN, led2_state ? HIGH : LOW);
     Serial.print("LED2 -> ");
     Serial.println(led2_state ? "ON" : "OFF");
-    // TODO: YOUR CODE TO CONTROL LED2
+  }
+  else if (ledStr == "pump")
+  {
+    pump_state = value;
+    digitalWrite(PUMP_PIN, pump_state ? HIGH : LOW);
+    Serial.print("PUMP -> ");
+    Serial.println(pump_state ? "ON" : "OFF");
+  }
+  else if (ledStr == "fan")
+  {
+    fan_state = value;
+    digitalWrite(FAN_PIN, fan_state ? HIGH : LOW);
+    Serial.print("FAN -> ");
+    Serial.println(fan_state ? "ON" : "OFF");
   }
 
+  // --- 4. Trả về JSON (cập nhật tất cả trạng thái) ---
   String json = "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") +
-                "\",\"led2\":\"" + String(led2_state ? "ON" : "OFF") + "\"}";
+                "\",\"led2\":\"" + String(led2_state ? "ON" : "OFF") +
+                "\",\"pump\":\"" + String(pump_state ? "ON" : "OFF") +
+                "\",\"fan\":\"" + String(fan_state ? "ON" : "OFF") + "\"}";
   server.send(200, "application/json", json);
 }
 void handleSetAll()
@@ -47,21 +78,64 @@ void handleSetAll()
 
   led1_state = value;
   led2_state = value;
+  fan_state = value;  // Thêm Fan
+  pump_state = value; // Thêm Pump
 
-  Serial.print("ALL LEDs -> ");
+  // Điều khiển các chân pin thực tế
+  digitalWrite(LED1_PIN, value ? HIGH : LOW);
+  digitalWrite(LED2_PIN, value ? HIGH : LOW);
+  digitalWrite(FAN_PIN, value ? HIGH : LOW);
+  digitalWrite(PUMP_PIN, value ? HIGH : LOW);
+  // ---------------------------------
+  if (!value)
+  {
+    strip.clear();
+    strip.show();
+  }
+  Serial.print("ALL DEVICES -> ");
   Serial.println(value ? "ON" : "OFF");
-  // TODO: set luôn GPIO thực tế nếu cần
 
+  // Trả về JSON chứa status của tất cả thiết bị
   String json = "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") +
-                "\",\"led2\":\"" + String(led2_state ? "ON" : "OFF") + "\"}";
+                "\",\"led2\":\"" + String(led2_state ? "ON" : "OFF") +
+                "\",\"pump\":\"" + String(pump_state ? "ON" : "OFF") +
+                "\",\"fan\":\"" + String(fan_state ? "ON" : "OFF") + "\"}";
   server.send(200, "application/json", json);
 }
+uint32_t hexToUint32(String hex)
+{
+  if (hex.startsWith("#"))
+  {
+    hex.remove(0, 1); // Loại bỏ '#'
+  }
+  long number = (long)strtol(hex.c_str(), NULL, 16);
+
+  uint8_t r = number >> 16;
+  uint8_t g = (number >> 8) & 0xFF;
+  uint8_t b = number & 0xFF;
+
+  return strip.Color(r, g, b); // Trả về màu theo định dạng NeoPixel (GRB)
+}
+
 void handleNeopixel()
 {
   String hex = server.arg("hex"); // dạng "#RRGGBB"
   Serial.print("NEOPIXEL color: ");
   Serial.println(hex);
-  // TODO: parse hex -> R,G,B rồi set NeoPixel
+
+  if (hex.length() == 7 && hex.startsWith("#"))
+  {
+    uint32_t color = hexToUint32(hex);
+
+    // Đặt màu cho LED đầu tiên (LED 0)
+    strip.setPixelColor(0, color);
+    strip.show(); // Hiển thị màu
+
+    // Nếu bạn có một semaphore để báo hiệu cho task neo_blinky dừng lại, hãy sử dụng nó ở đây
+    // Ví dụ: xSemaphoreTake(xSemaphoreNeoLed, 0);
+  }
+  // ======================================
+
   server.send(200, "text/plain", "OK");
 }
 void handleToggle()
@@ -151,19 +225,23 @@ bool serveFile(const String &path)
   return true;
 }
 
-
-void handleRootPage() {     // GET "/"
-  if (WiFi.status() == WL_CONNECTED ) {
-    if (!serveFile("/index.html")) {
+void handleRootPage()
+{ // GET "/"
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    if (!serveFile("/index.html"))
+    {
       server.send(404, "text/plain", "index.html not found");
     }
-  } else {
-    if (!serveFile("/wifi.html")) {
+  }
+  else
+  {
+    if (!serveFile("/wifi.html"))
+    {
       server.send(404, "text/plain", "wifi.html not found");
     }
   }
 }
-
 
 void setupServer()
 {
@@ -201,6 +279,7 @@ void setupServer()
   server.on("/sensors", HTTP_GET, handleSensors);
   server.on("/wifi_status", HTTP_GET, handleWifiStatus);
   server.on("/connect", HTTP_GET, handleConnect);
+  server.on("/state", HTTP_GET, handleState);
 
   // fallback: nếu path nào chưa khai báo mà trùng tên file trong SPIFFS thì vẫn serve được
   server.onNotFound([]()
@@ -248,14 +327,23 @@ void main_server_task(void *pvParameters)
   {
     Serial.println("SPIFFS mounted OK");
   }
+  pinMode(LED1_PIN, OUTPUT);
+  pinMode(LED2_PIN, OUTPUT);
+  pinMode(FAN_PIN, OUTPUT);
+  pinMode(PUMP_PIN, OUTPUT);
 
+  strip.begin(); // Khởi tạo NeoPixel
+  strip.show();
+  digitalWrite(LED1_PIN, LOW);
+  digitalWrite(LED2_PIN, LOW);
+  digitalWrite(FAN_PIN, LOW);
+  digitalWrite(PUMP_PIN, LOW);
   startAP();
   setupServer();
 
   while (1)
   {
     server.handleClient();
-
     // BOOT Button to switch to AP Mode
     if (digitalRead(BOOT_PIN) == LOW)
     {
@@ -283,6 +371,7 @@ void main_server_task(void *pvParameters)
 
         isAPMode = false;
         connecting = false;
+        setupServer();
       }
       else if (millis() - connect_start_ms > 10000)
       { // timeout 10s
@@ -294,6 +383,6 @@ void main_server_task(void *pvParameters)
       }
     }
 
-    vTaskDelay(20); // avoid watchdog reset
+    vTaskDelay(1); // avoid watchdog reset
   }
 }

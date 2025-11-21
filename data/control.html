@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-
+    <script src="script.js"></script>
     <style>
         :root {
             --iot-bg: #f4f8fb;
@@ -202,6 +202,41 @@
             border-radius: 10px;
             cursor: pointer;
         }
+
+        @keyframes fan-spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pump-wave {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        #fanIcon.led-on .material-icons-outlined {
+            animation: fan-spin 1s linear infinite;
+            /* Quay liên tục */
+        }
+
+        /* Hiệu ứng PUMP (sóng) */
+        #pumpIcon.led-on .material-icons-outlined {
+            animation: pump-wave 1.5s ease-in-out infinite;
+            /* Lắc lư */
+        }
     </style>
 </head>
 
@@ -231,11 +266,29 @@
                 <button class="btn btn-off" onclick="toggleDevice('led2','off')">Turn OFF</button>
             </div>
 
-
             <div class="device-card neopixel-card">
                 <h2>NEOPIXEL</h2>
                 <h3 id="neoStatus">Color Picker</h3>
                 <input type="color" id="neoColor" value="#00ff00" onchange="setNeoColor(this.value)">
+            </div>
+
+            <div class="device-card">
+                <div class="icon-wrapper led-off" id="pumpIcon">
+                    <span class="material-icons-outlined">waves</span>
+                </div>
+                <h2>PUMP</h2>
+                <h3 id="pumpStatus">OFF</h3>
+                <button class="btn btn-on" onclick="toggleDevice('pump','on')">Turn ON</button>
+                <button class="btn btn-off" onclick="toggleDevice('pump','off')">Turn OFF</button>
+            </div>
+            <div class="device-card">
+                <div class="icon-wrapper led-off" id="fanIcon">
+                    <span class="material-icons-outlined">air</span>
+                </div>
+                <h2>FAN</h2>
+                <h3 id="fanStatus">OFF</h3>
+                <button class="btn btn-on" onclick="toggleDevice('fan','on')">Turn ON</button>
+                <button class="btn btn-off" onclick="toggleDevice('fan','off')">Turn OFF</button>
             </div>
         </div>
 
@@ -246,5 +299,6 @@
     </main>
 
 </body>
+
 
 </html>

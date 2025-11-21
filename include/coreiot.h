@@ -9,4 +9,8 @@
 
 void coreiot_task(void *pvParameters);
 void wifi_connect_task(void *pvParameters);
+void reportStateToCoreIOT(const char *key, bool state);
+
+extern WiFiClient espClient;
+extern PubSubClient client;
 #endif

@@ -103,6 +103,65 @@
             color: #074580;
             cursor: pointer;
         }
+
+
+        /* ======================================= */
+        /* ====== 1. TABLET (Small Desktop / iPad) - Dưới 1200px ====== */
+        /* ======================================= */
+        @media screen and (max-width: 1200px) {
+            /* Sidebar vẫn giữ nguyên, nhưng main content chiếm ít không gian hơn */
+
+            body {
+                /* Chuyển biểu đồ thành 1 cột */
+            }
+
+            .main-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+        /* ======================================= */
+        /* ====== 2. MOBILE (Dưới 768px) ====== */
+        /* ======================================= */
+        @media screen and (max-width: 768px) {
+            body {
+                /* Sidebar chuyển xuống thành hàng đầu tiên, Header và Main Content nằm dưới */
+                grid-template-columns: 1fr;
+                /* Chỉ còn 1 cột chính */
+                grid-template-rows: auto 70px 1fr;
+                /* Sắp xếp lại: Sidebar, Header, Main */
+                grid-template-areas:
+                    "sidebar"
+                    "header"
+                    "main";
+            }
+
+            #sidebar {
+                /* Sidebar mặc định ẩn đi trên mobile */
+                display: none;
+                /* Nếu muốn làm sidebar bật/tắt (như menu hamburger), cần thêm JS */
+            }
+
+            /* Hiển thị Header chiếm toàn bộ chiều rộng */
+            header {
+                width: 100%;
+            }
+
+            #main-content {
+                padding: 20px 15px;
+                /* Giảm padding cho màn hình nhỏ */
+            }
+
+            /* Card cảm biến: Tự động xếp chồng nếu không đủ 250px cho mỗi card */
+            .main-cards {
+                grid-template-columns: 1fr;
+                /* Từng card chiếm 100% chiều rộng */
+                gap: 15px;
+            }
+
+            /* Biểu đồ: Giữ nguyên 1 cột (đã set ở 1200px) */
+        }
     </style>
 </head>
 
@@ -184,13 +243,20 @@
                 .then(res => res.text())
                 .then(html => {
                     document.getElementById("main-content").innerHTML = html;
+
                     document.querySelectorAll(".sidebar-list-item").forEach(el => el.classList.remove("active"));
                     document.querySelector(`.sidebar-list-item[data-page='${page}']`).classList.add("active");
-                })
-                .catch(() => {
-                    document.getElementById("main-content").innerHTML = "<h2>❌ Page not found.</h2>";
+
+                    if (page === "dashboard.html") {
+                        setTimeout(() => {
+                            initDynamicCharts();
+                            updateEnvFromSensors();
+                            setInterval(updateEnvFromSensors, 3000);
+                        }, 50);
+                    }
                 });
         }
+
 
         // Gán sự kiện click cho sidebar
         document.querySelectorAll(".sidebar-list-item").forEach(item => {

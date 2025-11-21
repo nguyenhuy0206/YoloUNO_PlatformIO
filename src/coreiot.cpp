@@ -31,8 +31,7 @@ void reconnect()
     }
   }
 }
-bool pumpState = false;
-bool fanState = false;
+
 void callback(char *topic, byte *payload, unsigned int length)
 {
   Serial.print("RPC arrived [");
@@ -60,7 +59,7 @@ void callback(char *topic, byte *payload, unsigned int length)
   if (method == "getPumpState")
   {
     StaticJsonDocument<64> resp;
-    resp["state"] = pumpState;
+    resp["state"] = pump_state;
 
     char buf[64];
     serializeJson(resp, buf);
@@ -72,7 +71,7 @@ void callback(char *topic, byte *payload, unsigned int length)
   if (method == "getFanState")
   {
     StaticJsonDocument<64> resp;
-    resp["state"] = fanState;
+    resp["state"] = fan_state;
 
     char buf[64];
     serializeJson(resp, buf);
@@ -85,24 +84,40 @@ void callback(char *topic, byte *payload, unsigned int length)
   // ------------------ SET STATE -------------------
   if (method == "setPumpState")
   {
-    pumpState = doc["params"];
-    digitalWrite(PUMP_PIN, pumpState);
+    bool new_state = doc["params"];
 
+    pump_state = new_state;
+
+    digitalWrite(PUMP_PIN, pump_state);
+
+    reportStateToCoreIOT("pump_state", pump_state);
     client.publish(("v1/devices/me/rpc/response/" + requestID).c_str(), "{}");
-    Serial.printf("Pump → %s\n", pumpState ? "ON" : "OFF");
+    Serial.printf("Pump → %s\n", pump_state ? "ON" : "OFF");
     return;
   }
   if (method == "setFanState")
   {
-    fanState = doc["params"];
-    digitalWrite(FAN_PIN, fanState);
-
+    fan_state = doc["params"];
+    digitalWrite(FAN_PIN, fan_state);
+    reportStateToCoreIOT("fan_state", fan_state);
     client.publish(("v1/devices/me/rpc/response/" + requestID).c_str(), "{}");
-    Serial.printf("Fan → %s\n", fanState ? "ON" : "OFF");
+    Serial.printf("Fan → %s\n", fan_state ? "ON" : "OFF");
     return;
   }
 }
+void reportStateToCoreIOT(const char *key, bool state)
+{
+  if (!client.connected())
+    return;
 
+  StaticJsonDocument<64> doc;
+  doc[key] = state; // Ví dụ: {"pump_state": true}
+
+  char buffer[64];
+  serializeJson(doc, buffer);
+  client.publish("v1/devices/me/telemetry", buffer);
+  Serial.printf("[CoreIOT] Telemetry: %s -> %s\n", key, state ? "ON" : "OFF");
+}
 void setup_coreiot()
 {
 
@@ -117,13 +132,6 @@ void setup_coreiot()
   pinMode(PUMP_PIN, OUTPUT);
   pinMode(FAN_PIN, OUTPUT);
   WiFi.begin(wifi_ssid, wifi_password);
-  Serial.print("Connecting");
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.print(".");
-    delay(500);
-  }
-  Serial.println(" WiFi OK");
 
   client.setServer(coreIOT_Server, mqttPort);
   client.setCallback(callback);
@@ -132,14 +140,6 @@ void wifi_connect_task(void *pvParameters)
 {
   WiFi.mode(WIFI_STA);
   WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
-
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.print(".");
-    vTaskDelay(pdMS_TO_TICKS(500));
-  }
-
-  Serial.println("\nWiFi Connected, IP: " + WiFi.localIP().toString());
 
   // Signal các task khác WiFi ready
   xSemaphoreGive(xBinarySemaphoreInternet);
@@ -160,7 +160,14 @@ void coreiot_task(void *pvParameters)
   //   Serial.println("MQTT connect failed");
   //   vTaskDelay(pdMS_TO_TICKS(5000));
   // }
+  Serial.println("CoreIOT: Waiting for Internet connection...");
+  xSemaphoreTake(xBinarySemaphoreInternet, portMAX_DELAY); // Task bị chặn ở đây
 
+  // Khi Semaphore được Give (tức là WiFi.status() == WL_CONNECTED):
+  Serial.println("CoreIOT: Internet connected! Starting cloud loop...");
+
+  // Đặt Semaphore lại
+  xSemaphoreTake(xBinarySemaphoreInternet, 0);
   SensorData recv;
   StaticJsonDocument<128> doc;
   char buffer[128];
@@ -188,7 +195,7 @@ void coreiot_task(void *pvParameters)
         Serial.println("Failed to publish");
     }
 
-    vTaskDelay(pdMS_TO_TICKS(10000));
+    vTaskDelay(pdMS_TO_TICKS(1000));
   }
   // if (!client.connected())
   //   reconnect();
