@@ -3,12 +3,6 @@
 
 #include <WiFi.h>
 #include <WebServer.h>
-<<<<<<< Updated upstream
-
-bool led1_state = false;
-bool led2_state = false;
-bool isAPMode = true;
-=======
 #include <Adafruit_NeoPixel.h>
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
@@ -19,15 +13,10 @@ bool isAPMode = true;
 #include "coreiot.h"
 
 // ================== GLOBALS ==================
->>>>>>> Stashed changes
 
 static Adafruit_NeoPixel strip(LED_COUNT, NEO_PIN, NEO_GRB + NEO_KHZ800);
 static WebServer server(80);
 
-<<<<<<< Updated upstream
-unsigned long connect_start_ms = 0;
-bool connecting = false;
-=======
 // ================== Forward declarations ==================
 
 static void handleState(AppContext *ctx);
@@ -61,7 +50,6 @@ static void handleState(AppContext *ctx)
   serializeJson(doc, buffer);
   server.send(200, "application/json", buffer);
 }
->>>>>>> Stashed changes
 
 static void handleSet(AppContext *ctx)
 {
@@ -73,31 +61,13 @@ static void handleSet(AppContext *ctx)
 
   if (led == 1)
   {
-<<<<<<< Updated upstream
-    led1_state = value;
-    Serial.print("LED1 -> ");
-    Serial.println(led1_state ? "ON" : "OFF");
-    // TODO: thêm YOUR CODE TO CONTROL LED1 ở đây, ví dụ:
-    // digitalWrite(LED1_PIN, led1_state ? HIGH : LOW);
-=======
     ctx->led1_state = value;
     digitalWrite(LED1_PIN, value ? HIGH : LOW);
     Serial.print("LED1 -> ");
     Serial.println(value ? "ON" : "OFF");
->>>>>>> Stashed changes
   }
   else if (led == 2)
   {
-<<<<<<< Updated upstream
-    led2_state = value;
-    Serial.print("LED2 -> ");
-    Serial.println(led2_state ? "ON" : "OFF");
-    // TODO: YOUR CODE TO CONTROL LED2
-  }
-
-  String json = "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") +
-                "\",\"led2\":\"" + String(led2_state ? "ON" : "OFF") + "\"}";
-=======
     ctx->led2_state = value;
     digitalWrite(LED2_PIN, value ? HIGH : LOW);
     Serial.print("LED2 -> ");
@@ -122,7 +92,6 @@ static void handleSet(AppContext *ctx)
                 "\",\"led2\":\"" + String(ctx->led2_state ? "ON" : "OFF") +
                 "\",\"pump\":\"" + String(ctx->pump_state ? "ON" : "OFF") +
                 "\",\"fan\":\"" + String(ctx->fan_state ? "ON" : "OFF") + "\"}";
->>>>>>> Stashed changes
   server.send(200, "application/json", json);
 }
 
@@ -132,12 +101,6 @@ static void handleSetAll(AppContext *ctx)
   state.toLowerCase();
   bool value = (state == "on");
 
-<<<<<<< Updated upstream
-  led1_state = value;
-  led2_state = value;
-
-  Serial.print("ALL LEDs -> ");
-=======
   ctx->led1_state = value;
   ctx->led2_state = value;
   ctx->fan_state = value;
@@ -155,17 +118,9 @@ static void handleSetAll(AppContext *ctx)
   }
 
   Serial.print("ALL DEVICES -> ");
->>>>>>> Stashed changes
   Serial.println(value ? "ON" : "OFF");
   // TODO: set luôn GPIO thực tế nếu cần
 
-<<<<<<< Updated upstream
-  String json = "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") +
-                "\",\"led2\":\"" + String(led2_state ? "ON" : "OFF") + "\"}";
-  server.send(200, "application/json", json);
-}
-void handleNeopixel()
-=======
   String json = "{\"led1\":\"" + String(ctx->led1_state ? "ON" : "OFF") +
                 "\",\"led2\":\"" + String(ctx->led2_state ? "ON" : "OFF") +
                 "\",\"pump\":\"" + String(ctx->pump_state ? "ON" : "OFF") +
@@ -190,16 +145,12 @@ static uint32_t hexToUint32(const String &hexStr)
 }
 
 static void handleNeopixel(AppContext *ctx)
->>>>>>> Stashed changes
 {
   (void)ctx;
 
   String hex = server.arg("hex"); // dạng "#RRGGBB"
   Serial.print("NEOPIXEL color: ");
   Serial.println(hex);
-<<<<<<< Updated upstream
-  // TODO: parse hex -> R,G,B rồi set NeoPixel
-=======
 
   if (hex.length() == 7 && hex.startsWith("#"))
   {
@@ -208,7 +159,6 @@ static void handleNeopixel(AppContext *ctx)
     strip.show();
   }
 
->>>>>>> Stashed changes
   server.send(200, "text/plain", "OK");
 }
 
@@ -249,13 +199,7 @@ static void handleSensors(AppContext *ctx)
   }
 }
 
-<<<<<<< Updated upstream
-void handleSettings() { server.send(200, "text/html; charset=utf-8", settingsPage()); }
-
-void handleWifiStatus()
-=======
 static void handleWifiStatus(AppContext *ctx)
->>>>>>> Stashed changes
 {
   wl_status_t st = WiFi.status();
 
@@ -364,18 +308,11 @@ static bool serveFile(const String &path)
   return true;
 }
 
-<<<<<<< Updated upstream
-// ========== WiFi ==========
-void handleRootPage()
-{ // GET "/"
-  if (!serveFile("/index.html"))
-=======
 static void handleRootPage(AppContext *ctx)
 {
   (void)ctx;
 
   if (WiFi.status() == WL_CONNECTED)
->>>>>>> Stashed changes
   {
     server.send(404, "text/plain", "index.html not found");
   }
@@ -433,16 +370,6 @@ static void setupServer(AppContext *ctx)
   server.on("/Thermometer.json", HTTP_GET, []()
             { serveFile("/Thermometer.json"); });
 
-<<<<<<< Updated upstream
-  // ==== API động bạn đã có sẵn ====
-  server.on("/toggle", HTTP_GET, handleToggle);
-  server.on("/set", HTTP_GET, handleSet);
-  server.on("/set_all", HTTP_GET, handleSetAll);
-  server.on("/neopixel", HTTP_GET, handleNeopixel);
-  server.on("/sensors", HTTP_GET, handleSensors);
-  server.on("/wifi_status", HTTP_GET, handleWifiStatus);
-  server.on("/connect", HTTP_GET, handleConnect);
-=======
   // API
   server.on("/toggle", HTTP_GET, [ctx]()
             { handleToggle(ctx); });
@@ -460,7 +387,6 @@ static void setupServer(AppContext *ctx)
             { handleConnect(ctx); });
   server.on("/state", HTTP_GET, [ctx]()
             { handleState(ctx); });
->>>>>>> Stashed changes
 
   // 404 fallback
   server.onNotFound([]()
@@ -476,19 +402,7 @@ static void setupServer(AppContext *ctx)
   Serial.println("[HTTP] Server started");
 }
 
-<<<<<<< Updated upstream
-void startAP()
-{
-  WiFi.mode(WIFI_AP_STA);
-  WiFi.softAP(ssid.c_str(), password.c_str());
-  Serial.print("AP IP address: ");
-  Serial.println(WiFi.softAPIP());
-  isAPMode = true;
-  connecting = false;
-}
-=======
 // ================== MAIN SERVER TASK ==================
->>>>>>> Stashed changes
 
 void main_server_task(void *pvParameters)
 {
@@ -504,11 +418,6 @@ void main_server_task(void *pvParameters)
   {
     Serial.println("SPIFFS mounted OK");
   }
-<<<<<<< Updated upstream
-
-  startAP();
-  setupServer();
-=======
 
   pinMode(LED1_PIN, OUTPUT);
   pinMode(LED2_PIN, OUTPUT);
@@ -522,7 +431,6 @@ void main_server_task(void *pvParameters)
   digitalWrite(LED2_PIN, LOW);
   digitalWrite(FAN_PIN, LOW);
   digitalWrite(PUMP_PIN, LOW);
->>>>>>> Stashed changes
 
   // Khởi động trong AP mode + HTTP server
   startAP(ctx);
@@ -532,11 +440,7 @@ void main_server_task(void *pvParameters)
   {
     server.handleClient();
 
-<<<<<<< Updated upstream
-    // BOOT Button to switch to AP Mode
-=======
     // Nút BOOT để force AP mode
->>>>>>> Stashed changes
     if (digitalRead(BOOT_PIN) == LOW)
     {
       vTaskDelay(pdMS_TO_TICKS(100));
@@ -589,34 +493,6 @@ void main_server_task(void *pvParameters)
       }
     }
 
-<<<<<<< Updated upstream
-    // STA Mode
-    if (connecting)
-    {
-      if (WiFi.status() == WL_CONNECTED)
-      {
-        Serial.print("STA IP address: ");
-        Serial.println(WiFi.localIP());
-        isWifiConnected = true; // Internet access
-
-        xSemaphoreGive(xBinarySemaphoreInternet);
-
-        isAPMode = false;
-        connecting = false;
-      }
-      else if (millis() - connect_start_ms > 10000)
-      { // timeout 10s
-        Serial.println("WiFi connect failed! Back to AP.");
-        startAP();
-        setupServer();
-        connecting = false;
-        isWifiConnected = false;
-      }
-    }
-
-    vTaskDelay(20); // avoid watchdog reset
-=======
     vTaskDelay(1); // tránh WDT
->>>>>>> Stashed changes
   }
 }
