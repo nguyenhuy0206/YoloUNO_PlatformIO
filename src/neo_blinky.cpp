@@ -7,21 +7,23 @@ void neo_blinky(void *pvParameters)
     strip.clear();
     strip.show();
     SensorData recv;
+    AppContext *ctx = (AppContext *)pvParameters;
     while (1)
     {
-        if (xSemaphoreTake(xSensorMutex, portMAX_DELAY) == pdTRUE)
+        if (xSemaphoreTake(ctx->xSemaphoreNeoLed, portMAX_DELAY) == pdTRUE)
         {
-            recv = data;
-            xSemaphoreGive(xSensorMutex);
-            if (recv.humidity < 40)
-                strip.setPixelColor(0, strip.Color(255, 0, 0));
-            else if (recv.humidity < 70)
-                strip.setPixelColor(0, strip.Color(0, 255, 0));
-            else
-                strip.setPixelColor(0, strip.Color(0, 0, 255));
+            if (xQueuePeek(ctx->xQueueSensor, &recv, 0) == pdTRUE)
+            {
+                if (recv.humidity < 40)
+                    strip.setPixelColor(0, strip.Color(255, 0, 0));
+                else if (recv.humidity < 70)
+                    strip.setPixelColor(0, strip.Color(0, 255, 0));
+                else
+                    strip.setPixelColor(0, strip.Color(0, 0, 255));
 
-            strip.show();
-            Serial.printf("[NeoPixel] Color updated @H=%.1f%%\n", recv.humidity);
+                strip.show();
+                Serial.printf("[NeoPixel] Color updated @H=%.1f%%\n", recv.humidity);
+            }
         }
         vTaskDelay(1000);
     }

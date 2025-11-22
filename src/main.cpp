@@ -9,25 +9,39 @@
 #include "coreiot.h"
 #include "lcd_display.h"
 #include "control.h"
+
+// Dùng 1 context global duy nhất cho toàn bộ hệ thống
+static AppContext g_ctx;
+
 void setup()
 {
   Serial.begin(115200);
   Wire.begin(11, 12);
 
-  xQueueSensor = xQueueCreate(5, sizeof(SensorData));
-  xSensorMutex = xSemaphoreCreateMutex();
+  // Con trỏ tiện dụng để truyền cho task
+  AppContext *ctx = &g_ctx;
 
-  xBinarySemaphoreInternet = xSemaphoreCreateBinary();
-  xSemaphoreLed = xSemaphoreCreateBinary();
-  xSemaphoreNeoLed = xSemaphoreCreateBinary();
-  xSemaphoreLCD = xSemaphoreCreateBinary();
+  // Xóa sạch tất cả field (pointer = NULL, bool = false, số = 0)
+  memset(ctx, 0, sizeof(AppContext));
 
+<<<<<<< Updated upstream
   // Tạo task LCD trước
   xTaskCreate(wifi_connect_task, "WiFi Connect", 4096, NULL, 1, NULL);
+=======
+  // Tạo queue & semaphore
+  ctx->xQueueSensor = xQueueCreate(1, sizeof(SensorData));
+  ctx->xBinarySemaphoreInternet = xSemaphoreCreateBinary();
+  ctx->xSemaphoreLed = xSemaphoreCreateBinary();
+  ctx->xSemaphoreNeoLed = xSemaphoreCreateBinary();
+  ctx->xSemaphoreLCD = xSemaphoreCreateBinary();
+  ctx->xSemaphoreTinyML = xSemaphoreCreateBinary();
+>>>>>>> Stashed changes
 
-  // Tạo task sensor sau
-  xTaskCreate(temp_humi_monitor, "Sensor", 4096, NULL, 1, NULL);
+  // Init giá trị ban đầu
+  ctx->data.temperature = 0;
+  ctx->data.humidity = 0;
 
+<<<<<<< Updated upstream
   // LED task
   // xTaskCreate(led_blinky, "LED", 4096, NULL, 1, NULL);
   // xTaskCreate(neo_blinky, "NeoPixel", 4096, NULL, 1, NULL);
@@ -38,6 +52,31 @@ void setup()
   // xTaskCreate(main_server_task, "MainServer", 8192, NULL, 1, NULL);
   xTaskCreate(coreiot_task, "CoreIOT", 8192, NULL, 1, NULL);
   // xTaskCreate(tiny_ml_task, "TinyML", 8192, NULL, 1, NULL);
+=======
+  ctx->isWifiConnected = false;
+  ctx->isConnecting = false;
+  ctx->isAPMode = true;
+
+  ctx->fan_state = false;
+  ctx->led1_state = false;
+  ctx->led2_state = false;
+  ctx->pump_state = false;
+
+  // Cho phép các task sensor-based chạy vòng đầu tiên
+  xSemaphoreGive(ctx->xSemaphoreLed);
+  xSemaphoreGive(ctx->xSemaphoreNeoLed);
+  xSemaphoreGive(ctx->xSemaphoreLCD);
+  xSemaphoreGive(ctx->xSemaphoreTinyML);
+
+  // Tạo task – TẤT CẢ đều truyền ctx, không có NULL
+  xTaskCreate(temp_humi_monitor, "Sensor", 4096, ctx, 1, NULL);
+  xTaskCreate(led_blinky, "LED", 4096, ctx, 1, NULL);
+  xTaskCreate(neo_blinky, "NeoPixel", 4096, ctx, 1, NULL);
+  xTaskCreate(lcd_display, "LCD", 4096, ctx, 1, NULL);
+  xTaskCreate(main_server_task, "MainServer", 8192, ctx, 1, NULL);
+  xTaskCreate(coreiot_task, "CoreIOT", 8192, ctx, 1, NULL);
+  xTaskCreate(tiny_ml_task, "TinyML", 8192, ctx, 1, NULL);
+>>>>>>> Stashed changes
 }
 
 void loop()

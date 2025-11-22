@@ -1,9 +1,8 @@
 #include "global.h"
-float glob_temperature = 30;
-float glob_humidity = 70;
 
 String ssid = "ESP32-MH";
 String password = "12345678";
+<<<<<<< Updated upstream
 String wifi_ssid = "ACLAB";
 String wifi_password = "ACLAB2023";
 boolean isWifiConnected = false;
@@ -16,3 +15,7 @@ QueueHandle_t xQueueSensor;
 SemaphoreHandle_t xSemaphoreLed;
 SemaphoreHandle_t xSemaphoreNeoLed;
 SemaphoreHandle_t xSemaphoreLCD;
+=======
+String wifi_ssid = "Minhhuy";
+String wifi_password = "khangtin";
+>>>>>>> Stashed changes

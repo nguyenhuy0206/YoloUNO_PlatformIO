@@ -22,9 +22,9 @@
 String mainPage();
 String settingsPage();
 
-void startAP();
-void setupServer();
-void connectToWiFi();
+// void startAP();
+// void setupServer();
+// void connectToWiFi();
 
 void main_server_task(void *pvParameters);
 
