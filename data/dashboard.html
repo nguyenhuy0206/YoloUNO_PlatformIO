@@ -32,8 +32,14 @@
                 <span class="material-icons-outlined">wifi</span>
             </div>
             <div class="sensor-info">
-                <h2>WIFI STATUS</h2>
-                <h1 id="wifiStatusDashboard">--</h1>
+                <h2>WI-FI</h2>
+
+                <!-- Chip hiển thị trạng thái -->
+                <button type="button" id="wifiStatusDashboard" class="wifi-status-chip status-unknown" disabled>
+                    Unknown
+                </button>
+
+                <!-- SSID -->
                 <p class="sensor-sub" id="wifiSsidDashboard">SSID: --</p>
             </div>
         </div>
@@ -41,10 +47,12 @@
         <!-- Nút config Wi-Fi -->
         <div class="wifi-actions">
             <button type="button" class="wifi-config-btn" onclick="openWifiSettings()">
-                Configure Wi-Fi
+                <span class="material-icons-outlined" style="font-size:18px;">settings</span>
+                Wi-Fi Settings
             </button>
         </div>
     </div>
+
 
 
     <!-- 🤖 TINYML LOG -->

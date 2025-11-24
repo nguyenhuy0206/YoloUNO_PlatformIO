@@ -1,5 +1,9 @@
 #include "tinyml.h"
+#include <Arduino.h>
 
+volatile int g_tinyml_class = -1;
+volatile float g_tinyml_prob = 0.0f;
+String g_tinyml_label = "No prediction yet";
 // Globals, for the convenience of one-shot setup.
 namespace
 {
@@ -128,7 +132,9 @@ void tiny_ml_task(void *pvParameters)
             comfort_text = "Quite hot";
             break;
         }
-
+        g_tinyml_class = best_class;
+        g_tinyml_prob = best;
+        g_tinyml_label = comfort_text;
         // ===== 8) PRINT FULL INFO =====
         Serial.print("[TinyML] Temp=");
         Serial.print(ta);

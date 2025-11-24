@@ -43,15 +43,7 @@
             /* để luôn nằm trên main một chút */
         }
 
-        #sidebar {
-            grid-area: sidebar;
-            background: #0a1f44;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15);
-        }
+
 
         #main-content {
             grid-area: main;
@@ -230,10 +222,6 @@
                     <span class="sidebar-label">Cloud Monitor</span>
                 </li>
 
-                <li class="sidebar-list-item" data-page="system_log.html">
-                    <span class="sidebar-icon material-icons-outlined" aria-hidden="true">settings</span>
-                    <span class="sidebar-label">System Logs</span>
-                </li>
             </ul>
         </nav>
 
@@ -287,30 +275,32 @@
                 fetch(page)
                     .then(res => res.text())
                     .then(html => {
-                        if (!main) return;
-                        main.innerHTML = html;
+                        document.getElementById("main-content").innerHTML = html;
 
-                        // Active item sidebar
                         document.querySelectorAll(".sidebar-list-item")
                             .forEach(el => el.classList.remove("active"));
-                        const active = document.querySelector(`.sidebar-list-item[data-page='${page}']`);
-                        if (active) active.classList.add("active");
+                        document.querySelector(`.sidebar-list-item[data-page='${page}']`)
+                            .classList.add("active");
 
-                        // Nếu là dashboard -> khởi động chart + polling sensor
+                        // Nếu là dashboard -> khởi động sensor + wifi + tinyml
                         if (page === "dashboard.html") {
                             setTimeout(() => {
-                                if (typeof initDynamicCharts === "function") {
-                                    initDynamicCharts();
-                                }
                                 if (typeof updateEnvFromSensors === "function") {
                                     updateEnvFromSensors();
                                     setInterval(updateEnvFromSensors, 3000);
                                 }
+                                if (typeof updateWifiInfo === "function") {
+                                    updateWifiInfo();
+                                }
+                                if (typeof updateTinyMLInfo === "function") {
+                                    updateTinyMLInfo();
+                                    setInterval(updateTinyMLInfo, 5000);
+                                }
                             }, 50);
                         }
-                    })
-                    .catch(err => console.error("loadPage error:", err));
+                    });
             }
+
 
             function closeSidebar() {
                 if (!sidebar) return;

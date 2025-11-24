@@ -821,6 +821,135 @@ body {
     box-shadow: 0 4px 10px rgba(15, 23, 42, 0.45);
 }
 
+/* Card Wi-Fi: nền nhẹ, không quá lòe loẹt vì trạng thái sẽ là nút đậm màu */
+.wifi-card {
+    background: linear-gradient(135deg, #e5f0ff, #f8fafc);
+    color: #0f172a;
+}
+
+/* TinyML giữ nguyên nếu bạn thích */
+.tinyml-card {
+    background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+    color: #ffffff;
+}
+
+/* Hàng chứa chip trạng thái (nằm ngay dưới title WI-FI) */
+.wifi-status-row {
+    margin: 6px 0 4px;
+}
+
+/* Nút trạng thái Wi-Fi – chip bo tròn */
+.wifi-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    cursor: default;
+    background: #e5e7eb;
+    color: #111827;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+    transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease,
+        transform 0.12s ease;
+}
+
+/* Chấm nhỏ phía trước text (optional – nếu muốn) */
+.wifi-status-chip::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #9ca3af;
+}
+
+/* Trạng thái CONNECTED – xanh dương đậm */
+.wifi-status-chip.status-connected {
+    background: #3bfb6e;
+    color: #eff6ff;
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.55);
+}
+
+.wifi-status-chip.status-connected::before {
+    background: #bbf7d0;
+    /* chấm xanh nhạt */
+}
+
+/* CONNECTING – vàng/cam */
+.wifi-status-chip.status-connecting {
+    background: #f59e0b;
+    color: #111827;
+    box-shadow: 0 10px 24px rgba(245, 158, 11, 0.45);
+}
+
+.wifi-status-chip.status-connecting::before {
+    background: #fef9c3;
+}
+
+/* FAILED / DISCONNECTED – đỏ */
+.wifi-status-chip.status-failed {
+    background: #b91c1c;
+    color: #fee2e2;
+    box-shadow: 0 10px 24px rgba(185, 28, 28, 0.6);
+}
+
+.wifi-status-chip.status-failed::before {
+    background: #fecaca;
+}
+
+/* UNKNOWN */
+.wifi-status-chip.status-unknown {
+    background: #e5e7eb;
+    color: #111827;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+}
+
+/* SSID text */
+.sensor-sub#wifiSsidDashboard {
+    margin-top: 8px;
+    font-size: 0.78rem;
+    opacity: 0.9;
+}
+
+/* Vùng nút config Wi-Fi */
+.wifi-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* Nút "Wi-Fi Settings" – nhỏ, tương phản với nền card */
+.wifi-config-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #0f172a;
+    color: #e5e7eb;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.4);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.wifi-config-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.55);
+    background: #020617;
+}
+
+.wifi-config-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.45);
+}
+
 /* Hiệu ứng chuyển động gradient nhẹ
 @keyframes tempGradient {
     0% {

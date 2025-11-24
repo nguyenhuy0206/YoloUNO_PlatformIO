@@ -5,7 +5,7 @@
 #include "neo_blinky.h"
 #include "control.h"
 #include "coreiot.h"
-
+#include "tinyml.h"
 bool isAPMode = true;
 Adafruit_NeoPixel strip(LED_COUNT, NEO_PIN, NEO_GRB + NEO_KHZ800);
 
@@ -70,6 +70,24 @@ void handleSet()
                 "\",\"fan\":\"" + String(fan_state ? "ON" : "OFF") + "\"}";
   server.send(200, "application/json", json);
 }
+void handleTinyML()
+{
+  StaticJsonDocument<256> doc;
+
+  // copy ra biến local để tránh đọc giữa lúc TinyML đang update
+  int cls = g_tinyml_class;
+  float prob = g_tinyml_prob;
+  String label = g_tinyml_label;
+
+  doc["class"] = cls;
+  doc["label"] = label;
+  doc["prob"] = prob;
+
+  String json;
+  serializeJson(doc, json);
+  server.send(200, "application/json", json);
+}
+
 void handleSetAll()
 {
   String state = server.arg("state"); // "on" hoặc "off"
@@ -209,6 +227,31 @@ String getContentType(const String &filename)
     return "image/x-icon";
   return "text/plain";
 }
+void handleWifiInfo()
+{
+  StaticJsonDocument<128> doc;
+
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    doc["status"] = "connected";
+    doc["ssid"] = WiFi.SSID();
+    doc["ip"] = WiFi.localIP().toString();
+  }
+  else if (connecting)
+  {
+    doc["status"] = "connecting";
+    doc["ssid"] = wifi_ssid; // SSID user nhập
+  }
+  else
+  {
+    doc["status"] = "failed";
+    doc["ssid"] = "";
+  }
+
+  String json;
+  serializeJson(doc, json);
+  server.send(200, "application/json", json);
+}
 
 bool serveFile(const String &path)
 {
@@ -270,6 +313,8 @@ void setupServer()
   server.on("/wifi_status", HTTP_GET, handleWifiStatus);
   server.on("/connect", HTTP_GET, handleConnect);
   server.on("/state", HTTP_GET, handleState);
+  server.on("/wifi_info", HTTP_GET, handleWifiInfo);
+  server.on("/tinyml_info", HTTP_GET, handleTinyML);
 
   // fallback: nếu path nào chưa khai báo mà trùng tên file trong SPIFFS thì vẫn serve được
   server.onNotFound([]()

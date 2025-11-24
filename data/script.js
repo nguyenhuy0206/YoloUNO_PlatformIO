@@ -1,202 +1,3 @@
-// ========== SIDEBAR & LAYOUT ==========
-
-// document.addEventListener('DOMContentLoaded', () => {
-//     const sidebar = document.getElementById('sidebar');
-//     const toggle = document.getElementById('sidebarToggle'); // nếu sau này bạn có nút collapse riêng
-//     const overlay = document.getElementById('sidebar-overlay') || document.querySelector('.sidebar-overlay');
-
-//     // If toggle exists -> wire collapse behavior (desktop collapse)
-//     if (toggle && sidebar) {
-//         toggle.addEventListener('click', () => {
-//             sidebar.classList.toggle('sidebar-collapsed');
-//             const icon = toggle.querySelector('.material-icons-outlined');
-//             if (icon) {
-//                 icon.textContent = sidebar.classList.contains('sidebar-collapsed')
-//                     ? 'chevron_right'
-//                     : 'chevron_left';
-//             }
-//         });
-//     }
-
-//     // Active đúng menu theo path
-//     const current = window.location.pathname.split('/').pop() || 'index.html';
-//     document.querySelectorAll('.sidebar-list-item').forEach(li => {
-//         const page = li.getAttribute('data-page') ||
-//             (li.querySelector('a') && li.querySelector('a').getAttribute('href'));
-
-//         if (page && (current === page || (current === '' && page === 'dashboard.html'))) {
-//             li.classList.add('active');
-//         } else {
-//             li.classList.remove('active');
-//         }
-
-//         // click navigation behavior
-//         li.addEventListener('click', () => {
-//             const pageTo = li.getAttribute('data-page');
-//             if (pageTo && typeof loadPage === 'function') {
-//                 loadPage(pageTo);
-//             } else if (pageTo) {
-//                 window.location.href = pageTo;
-//             }
-//         });
-//     });
-
-//     // Mobile: chỉ nút .menu-icon mở/đóng sidebar
-//     document.querySelectorAll('.sidebar-list-item').forEach(li => {
-//         li.addEventListener('click', () => {
-//             const pageTo = li.getAttribute('data-page');
-//             if (pageTo && typeof loadPage === 'function') {
-//                 loadPage(pageTo);
-//             } else if (pageTo) {
-//                 window.location.href = pageTo;
-//             }
-
-//             // Đóng sidebar + overlay trên mobile
-//             if (window.innerWidth <= 900 && sidebar) {
-//                 sidebar.classList.remove('sidebar-open');
-//                 overlay && overlay.classList.remove('active');
-//             }
-//         });
-//     });
-
-//     // Click overlay để đóng
-//     if (overlay) {
-//         overlay.addEventListener('click', () => {
-//             if (!sidebar) return;
-//             sidebar.classList.remove('sidebar-open');
-//             overlay.classList.remove('active');
-//         });
-//     }
-// });
-
-
-// ========== FAKE CARD DATA (WIND / RAIN) ==========
-let tempChart = null;
-let humChart = null;
-function initDynamicCharts() {
-    const tempCanvas = document.getElementById("tempChart");
-    const humCanvas = document.getElementById("humidityChart");
-
-    if (!tempCanvas || !humCanvas || typeof Chart === "undefined") return;
-
-    const tempCtx = tempCanvas.getContext("2d");
-    const humCtx = humCanvas.getContext("2d");
-
-    // Nhiệt độ
-    tempChart = new Chart(tempCtx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Temperature (°C)',
-                data: [],
-                borderColor: 'rgb(255, 99, 132)',
-                backgroundColor: 'rgba(255, 99, 132, 0.3)',
-                pointBackgroundColor: 'rgb(255, 99, 132)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: getChartOptions()
-    });
-
-    // Độ ẩm
-    humChart = new Chart(humCtx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Humidity (%)',
-                data: [],
-                borderColor: 'rgb(54, 162, 235)',
-                backgroundColor: 'rgba(54, 162, 235, 0.3)',
-                pointBackgroundColor: 'rgb(54, 162, 235)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: getChartOptions()
-    });
-
-    setInterval(updateCharts, 3000);
-}
-
-
-function getChartOptions() {
-    return {
-        responsive: true,
-        animation: false,
-        scales: {
-            x: {
-                ticks: { color: '#fff' },
-                grid: { color: '#444' },
-            },
-            y: {
-                beginAtZero: true,
-                ticks: { color: '#fff' },
-                grid: { color: '#444' }
-            }
-        },
-        plugins: {
-            legend: {
-                labels: { color: '#fff' }
-            }
-        }
-    };
-}
-
-let lastTimeLabel = "";
-
-function updateCharts() {
-    if (!tempChart || !humChart) return;
-
-    fetch("/sensors")
-        .then(res => res.json())
-        .then(data => {
-            const temp = parseFloat(data.temp);
-            const hum = parseFloat(data.hum);
-
-            if (isNaN(temp) || isNaN(hum)) return;
-
-            // tạo label thời gian
-            const now = new Date();
-            const label = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-            appendData(tempChart, label, temp);
-            appendData(humChart, label, hum);
-
-            // cập nhật card
-            document.getElementById("temperature").textContent = temp.toFixed(1) + " °C";
-            document.getElementById("humidity").textContent = hum.toFixed(1) + " %";
-        })
-        .catch(err => console.error("updateCharts error:", err));
-}
-
-
-// Làm tròn giờ hiện tại về mốc 5 phút gần nhất, trả về chuỗi HH:mm
-function getRoundedTimeLabel(date) {
-    const minutes = date.getMinutes();
-    const roundedMinutes = Math.floor(minutes / 5) * 5;
-    const hours = date.getHours();
-
-    const hh = hours.toString().padStart(2, "0");
-    const mm = roundedMinutes.toString().padStart(2, "0");
-
-    return `${hh}:${mm}`;
-}
-
-function appendData(chart, label, value) {
-    chart.data.labels.push(label);
-    chart.data.datasets[0].data.push(value);
-
-    if (chart.data.labels.length > 10) {
-        chart.data.labels.shift();
-        chart.data.datasets[0].data.shift();
-    }
-
-    chart.update();
-}
-
 function updateEnvFromSensors() {
     const tempEl = document.getElementById("temperature");
     const humEl = document.getElementById("humidity");
@@ -218,14 +19,6 @@ function updateEnvFromSensors() {
         });
 }
 
-// Khi dashboard đã load xong (index + dashboard.html đã chèn vào DOM)
-// window.addEventListener("load", () => {
-//     // gọi lần đầu
-//     updateEnvFromSensors();
-//     initDynamicCharts();
-//     // cập nhật lại mỗi 3 giây
-//     setInterval(updateEnvFromSensors, 3000);
-// });
 
 function updateDeviceUI(data) {
     // === LED 1 & LED 2 ===
@@ -443,11 +236,128 @@ function openWifiSettings() { // wifi.html mới dùng UI “Wi-Fi Settings” b
 
 
 function updateWifiDashboard(status, ssid) {
-    const statusEl = document.getElementById('wifiStatusDashboard');
-    const ssidEl = document.getElementById('wifiSsidDashboard');
-    const btn = document.querySelector('.wifi-config-btn');
-    if (statusEl) statusEl.textContent = status || '--'; if (ssidEl) ssidEl.textContent = ssid ? `SSID: ${ssid}` : 'SSID: --';
-    if (btn) { // Ví dụ: chỉ hiện nút khi không phải "Connected" 
-        btn.style.display = (status && status.toLowerCase() === 'connected') ? 'none' : 'inline-flex';
+    applyWifiStatusUI(status, ssid);
+
+}
+
+function updateWifiInfo() {
+    fetch("/wifi_info")
+        .then(res => res.json())
+        .then(info => {
+            const statusEl = document.getElementById("wifiStatusDashboard");
+            const ssidEl = document.getElementById("wifiSsidDashboard");
+            const btn = document.querySelector(".wifi-config-btn");
+
+            if (!statusEl || !ssidEl) return;
+
+            statusEl.textContent = info.status || "--";
+            ssidEl.textContent = info.ssid ? `SSID: ${info.ssid}` : "SSID: --";
+
+            if (btn) {
+                btn.style.display = (info.status === "connected")
+                    ? "none"
+                    : "inline-flex";
+            }
+        })
+        .catch(err => console.error("wifi_info error:", err));
+}
+
+function applyWifiStatusUI(rawStatus, ssid) {
+    const statusBtn = document.getElementById("wifiStatusDashboard");
+    const ssidEl = document.getElementById("wifiSsidDashboard");
+    const cfgBtn = document.querySelector(".wifi-config-btn");
+
+    if (!statusBtn || !ssidEl) return;
+
+    const s = (rawStatus || "").toLowerCase();
+    let label = "Unknown";
+    let className = "status-unknown";
+
+    switch (s) {
+        case "connected":
+            label = "Connected";
+            className = "status-connected";
+            break;
+        case "connecting":
+            label = "Connecting…";
+            className = "status-connecting";
+            break;
+        case "failed":
+        case "disconnected":
+            label = "Disconnected";
+            className = "status-failed";
+            break;
+        default:
+            label = "Unknown";
+            className = "status-unknown";
+            break;
     }
+
+    // reset class
+    statusBtn.classList.remove(
+        "status-connected",
+        "status-connecting",
+        "status-failed",
+        "status-unknown"
+    );
+    statusBtn.classList.add(className);
+    statusBtn.textContent = label;
+
+    ssidEl.textContent = ssid ? `SSID: ${ssid}` : "SSID: --";
+
+    if (cfgBtn) {
+        cfgBtn.style.display = (s === "connected") ? "none" : "inline-flex";
+    }
+}
+
+// Hàm gọi từ dashboard khi polling
+function updateWifiInfo() {
+    fetch("/wifi_info")
+        .then(res => res.json())
+        .then(info => {
+            applyWifiStatusUI(info.status, info.ssid);
+        })
+        .catch(err => console.error("wifi_info error:", err));
+}
+
+
+function updateTinyMLInfo() {
+    const labelEl = document.getElementById("tinymlCurrentLabel");
+    const summaryEl = document.getElementById("tinymlSummary");
+
+    if (!labelEl || !summaryEl) return; // không phải dashboard.html
+
+    fetch("/tinyml_info")
+        .then(res => res.json())
+        .then(info => {
+            const cls = typeof info.class === "number" ? info.class : -1;
+            const prob = typeof info.prob === "number" ? info.prob : NaN;
+            const label = info.label || "--";
+
+            // dòng chữ lớn
+            labelEl.textContent = label;
+
+            // summary nhỏ phía dưới
+            let desc = "";
+            switch (cls) {
+                case 0:
+                    desc = " Cool";
+                    break;
+                case 1:
+                    desc = "Neutral";
+                    break;
+                case 2:
+                    desc = "Warm";
+                    break;
+                default:
+                    desc = "No recent predictions.";
+                    break;
+            }
+
+
+            summaryEl.textContent = desc;
+        })
+        .catch(err => {
+            console.error("tinyml_info error:", err);
+        });
 }

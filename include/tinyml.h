@@ -12,7 +12,9 @@
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
-
+extern volatile int g_tinyml_class;
+extern volatile float g_tinyml_prob;
+extern String g_tinyml_label;
 void setupTinyML();
 void tiny_ml_task(void *pvParameters);
 
