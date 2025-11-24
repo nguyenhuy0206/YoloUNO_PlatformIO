@@ -1,235 +1,265 @@
-<!DOCTYPE html>
-<html lang="en">
+<!-- cloud.html: CHỈ CONTENT, KHÔNG có html/body/header/sidebar -->
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Monitor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+<style>
+    :root {
+        --cloud-text: #0f172a;
+        --cloud-muted: #64748b;
+        --cloud-radius: 18px;
+        --cloud-online: #16a34a;
+        --cloud-offline: #ef4444;
+        --cloud-warn: #f59e0b;
+        --cloud-surface: #ffffffcc;
+        --cloud-border: rgba(0, 0, 0, 0.1);
+        --cloud-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    }
 
-    <style>
-        :root {
-            --iot-bg: #f4f8fb;
-            --iot-primary: #0a3d62;
-            --iot-accent: #0077ff;
-            --iot-success: #00c853;
-            --iot-danger: #ff5252;
-            --iot-warning: #ffb300;
-            --iot-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    .cloud-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 8px;
+    }
+
+    .cloud-header {
+        margin-bottom: 30px;
+    }
+
+    .cloud-header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .cloud-subtitle {
+        margin-top: 4px;
+        font-size: 0.95rem;
+        color: var(--cloud-muted);
+    }
+
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 18px;
+        margin-bottom: 28px;
+    }
+
+    .status-card {
+        background: var(--cloud-surface);
+        border: 1px solid var(--cloud-border);
+        border-radius: var(--cloud-radius);
+        padding: 18px 16px;
+        box-shadow: var(--cloud-shadow);
+    }
+
+    .status-card-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .status-card h2 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .status-card .material-icons-outlined {
+        font-size: 30px;
+        color: var(--cloud-text);
+    }
+
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #fff;
+        white-space: nowrap;
+    }
+
+    .status-online {
+        background: var(--cloud-online);
+    }
+
+    .status-offline {
+        background: var(--cloud-offline);
+    }
+
+    .status-warning {
+        background: var(--cloud-warn);
+        color: #222;
+    }
+
+    .token-card {
+        background: var(--cloud-surface);
+        border: 1px solid var(--cloud-border);
+        border-radius: var(--cloud-radius);
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: var(--cloud-shadow);
+    }
+
+    .token-display {
+        background: #0f172a;
+        color: #e5e7eb;
+        border-radius: 12px;
+        padding: 10px 14px;
+        margin-top: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: monospace;
+        gap: 8px;
+    }
+
+    .token-display button {
+        background: #3b82f6;
+        border: none;
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .log-card {
+        background: var(--cloud-surface);
+        border: 1px solid var(--cloud-border);
+        border-radius: var(--cloud-radius);
+        padding: 20px;
+        box-shadow: var(--cloud-shadow);
+    }
+
+    .log-content {
+        background: #0f172a;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-family: monospace;
+        color: #e5e7eb;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .log-line {
+        margin-bottom: 4px;
+    }
+
+    .refresh-btn {
+        margin-top: 14px;
+        background: #0077ff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 16px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .cloud-toast {
+        position: fixed;
+        left: 50%;
+        bottom: 22px;
+        transform: translateX(-50%);
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: #0f172ae6;
+        color: white;
+        font-size: 0.85rem;
+        opacity: 0;
+        transition: 0.2s ease;
+        z-index: 120;
+    }
+
+    .cloud-toast.show {
+        opacity: 1;
+    }
+
+    /* Mobile: padding nhỏ lại cho gọn */
+    @media screen and (max-width: 900px) {
+        .cloud-page {
+            padding: 4px;
         }
+    }
+</style>
 
-        body {
-            background: var(--iot-bg);
-            font-family: 'Open Sans', sans-serif;
-            color: #1e293b;
-            margin: 0;
-        }
+<div class="cloud-page">
+    <header class="cloud-header">
+        <h1>Cloud Monitor</h1>
+        <p class="cloud-subtitle">Monitor device mode, WiFi status, and CoreIoT connectivity.</p>
+    </header>
 
-        .cloud-container {
-            padding: 40px;
-            max-width: 900px;
-            margin: auto;
-        }
-
-        .cloud-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .cloud-header h1 {
-            font-size: 1.8rem;
-            color: var(--iot-primary);
-        }
-
-        .back-link {
-            text-decoration: none;
-            color: var(--iot-accent);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* Status cards */
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .status-card {
-            background: #fff;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: var(--iot-shadow);
-            text-align: center;
-        }
-
-        .status-card .material-icons-outlined {
-            font-size: 40px;
-            margin-bottom: 8px;
-        }
-
-        .status-card h2 {
-            font-size: 1.2rem;
-            margin-bottom: 6px;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #fff;
-        }
-
-        .status-online {
-            background: var(--iot-success);
-        }
-
-        .status-offline {
-            background: var(--iot-danger);
-        }
-
-        .status-warning {
-            background: var(--iot-warning);
-            color: #222;
-        }
-
-        /* Token Card */
-        .token-card {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: var(--iot-shadow);
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .token-card h2 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
-
-        .token-display {
-            background: #e8f0fe;
-            padding: 10px;
-            border-radius: 10px;
-            font-family: monospace;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .token-display button {
-            background: var(--iot-accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 6px 12px;
-            cursor: pointer;
-        }
-
-        /* Log Card */
-        .log-card {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: var(--iot-shadow);
-            padding: 20px;
-        }
-
-        .log-card h2 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
-
-        .log-content {
-            background: #f0f5ff;
-            border-radius: 10px;
-            padding: 10px;
-            font-family: monospace;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .refresh-btn {
-            margin-top: 15px;
-            background: var(--iot-accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 18px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .refresh-btn:hover {
-            transform: scale(1.05);
-            background: #005ed4;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="cloud-container">
-
-        <div class="status-grid">
-            <div class="status-card">
+    <div class="status-grid">
+        <div class="status-card">
+            <div class="status-card-inner">
+                <div>
+                    <h2>Device Mode</h2>
+                    <span class="status-badge status-online" id="modeStatus">Normal</span>
+                </div>
                 <span class="material-icons-outlined">settings_remote</span>
-                <h2>Device Mode</h2>
-                <span class="status-badge status-online" id="modeStatus">Normal</span>
             </div>
-            <div class="status-card">
+        </div>
+
+        <div class="status-card">
+            <div class="status-card-inner">
+                <div>
+                    <h2>WiFi Status</h2>
+                    <span class="status-badge status-online" id="wifiStatus">Connected</span>
+                </div>
                 <span class="material-icons-outlined">wifi</span>
-                <h2>WiFi Status</h2>
-                <span class="status-badge status-online" id="wifiStatus">Connected</span>
-            </div>
-            <div class="status-card">
-                <span class="material-icons-outlined">cloud_done</span>
-                <h2>CoreIoT</h2>
-                <span class="status-badge status-offline" id="cloudStatus">Disconnected</span>
             </div>
         </div>
 
-        <div class="token-card">
-            <h2>Device Token</h2>
-            <div class="token-display">
-                <span id="tokenValue">abc123xyzTOKENexample</span>
-                <button onclick="copyToken()">Copy</button>
+        <div class="status-card">
+            <div class="status-card-inner">
+                <div>
+                    <h2>CoreIoT</h2>
+                    <span class="status-badge status-offline" id="cloudStatus">Disconnected</span>
+                </div>
+                <span class="material-icons-outlined">cloud_off</span>
             </div>
-        </div>
-
-        <div class="log-card">
-            <h2>Activity Log</h2>
-            <div class="log-content" id="logContent">
-                [12:01] WiFi Connected<br>
-                [12:03] Attempting CoreIoT sync...
-            </div>
-            <button class="refresh-btn" onclick="refreshStatus()">🔁 Refresh Status</button>
         </div>
     </div>
 
-    <script>
-        function copyToken() {
-            const token = document.getElementById("tokenValue").innerText;
-            navigator.clipboard.writeText(token);
-            alert("Token copied to clipboard!");
-        }
+    <section class="token-card">
+        <h2>Device Token</h2>
+        <div class="token-display">
+            <span id="tokenValue">abc123xyzTOKENexample</span>
+            <button onclick="copyToken()">Copy</button>
+        </div>
+    </section>
 
-        function refreshStatus() {
-            // 🔹 Giả lập cập nhật trạng thái
-            document.getElementById("cloudStatus").innerText = "Connected";
-            document.getElementById("cloudStatus").className = "status-badge status-online";
-            document.getElementById("logContent").innerHTML += "<br>[" + new Date().toLocaleTimeString() + "] Cloud reconnected ✅";
-        }
+    <section class="log-card">
+        <h2>Activity Log</h2>
+        <div class="log-content" id="logContent">
+            <div class="log-line">[12:01] WiFi connected</div>
+            <div class="log-line">[12:03] Attempting cloud sync...</div>
+        </div>
+        <button class="refresh-btn" onclick="refreshStatus()">Refresh</button>
+    </section>
+</div>
 
-    </script>
-</body>
+<div id="toast" class="cloud-toast"></div>
 
-</html>
+<script>
+    function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.innerText = msg;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function copyToken() {
+        const token = document.getElementById("tokenValue").innerText;
+        navigator.clipboard.writeText(token);
+        showToast("Token copied!");
+    }
+
+    function refreshStatus() {
+        document.getElementById("cloudStatus").innerText = "Connected";
+        document.getElementById("cloudStatus").className = "status-badge status-online";
+
+        document.getElementById("logContent").innerHTML +=
+            `<div class="log-line">[${new Date().toLocaleTimeString()}] Cloud reconnected</div>`;
+        showToast("Status refreshed");
+    }
+</script>

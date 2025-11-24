@@ -1,56 +1,73 @@
 // ========== SIDEBAR & LAYOUT ==========
 
-(function () {
-    const sidebar = document.getElementById('sidebar');
-    const toggle = document.getElementById('sidebarToggle');
-    const overlay = document.getElementById('sidebar-overlay') || document.querySelector('.sidebar-overlay');
+// document.addEventListener('DOMContentLoaded', () => {
+//     const sidebar = document.getElementById('sidebar');
+//     const toggle = document.getElementById('sidebarToggle'); // nếu sau này bạn có nút collapse riêng
+//     const overlay = document.getElementById('sidebar-overlay') || document.querySelector('.sidebar-overlay');
 
-    // If toggle exists -> wire collapse behavior
-    if (toggle && sidebar) {
-        toggle.addEventListener('click', () => {
-            // collapse / expand
-            sidebar.classList.toggle('sidebar-collapsed');
-            // rotate chevron icon accordingly
-            const icon = toggle.querySelector('.material-icons-outlined');
-            if (icon) icon.textContent = sidebar.classList.contains('sidebar-collapsed') ? 'chevron_right' : 'chevron_left';
-        });
-    }
+//     // If toggle exists -> wire collapse behavior (desktop collapse)
+//     if (toggle && sidebar) {
+//         toggle.addEventListener('click', () => {
+//             sidebar.classList.toggle('sidebar-collapsed');
+//             const icon = toggle.querySelector('.material-icons-outlined');
+//             if (icon) {
+//                 icon.textContent = sidebar.classList.contains('sidebar-collapsed')
+//                     ? 'chevron_right'
+//                     : 'chevron_left';
+//             }
+//         });
+//     }
 
-    // Activate correct menu item based on path or data-page
-    const current = window.location.pathname.split('/').pop() || 'index.html';
-    document.querySelectorAll('.sidebar-list-item').forEach(li => {
-        const page = li.getAttribute('data-page') || (li.querySelector('a') && li.querySelector('a').getAttribute('href'));
-        if (page && (current === page || (current === '' && page === 'dashboard.html'))) {
-            li.classList.add('active');
-        } else li.classList.remove('active');
+//     // Active đúng menu theo path
+//     const current = window.location.pathname.split('/').pop() || 'index.html';
+//     document.querySelectorAll('.sidebar-list-item').forEach(li => {
+//         const page = li.getAttribute('data-page') ||
+//             (li.querySelector('a') && li.querySelector('a').getAttribute('href'));
 
-        // click navigation behavior (if you use layout fetchs)
-        li.addEventListener('click', () => {
-            // if the list items have data-page and you're using layout loader, call loadPage
-            const pageTo = li.getAttribute('data-page');
-            if (pageTo && typeof loadPage === 'function') {
-                loadPage(pageTo);
-            } else if (pageTo) {
-                // fallback: navigate to page
-                window.location.href = pageTo;
-            }
-        });
-    });
+//         if (page && (current === page || (current === '' && page === 'dashboard.html'))) {
+//             li.classList.add('active');
+//         } else {
+//             li.classList.remove('active');
+//         }
 
-    // Mobile overlay open/close (optional)
-    document.querySelectorAll('.menu-icon, .header .material-icons-outlined').forEach(btn => {
-        btn && btn.addEventListener('click', () => {
-            if (!sidebar) return;
-            sidebar.classList.toggle('sidebar-open');
-            overlay && overlay.classList.toggle('active');
-        });
-    });
-    overlay && overlay.addEventListener('click', () => {
-        if (!sidebar) return;
-        sidebar.classList.remove('sidebar-open');
-        overlay.classList.remove('active');
-    });
-})();
+//         // click navigation behavior
+//         li.addEventListener('click', () => {
+//             const pageTo = li.getAttribute('data-page');
+//             if (pageTo && typeof loadPage === 'function') {
+//                 loadPage(pageTo);
+//             } else if (pageTo) {
+//                 window.location.href = pageTo;
+//             }
+//         });
+//     });
+
+//     // Mobile: chỉ nút .menu-icon mở/đóng sidebar
+//     document.querySelectorAll('.sidebar-list-item').forEach(li => {
+//         li.addEventListener('click', () => {
+//             const pageTo = li.getAttribute('data-page');
+//             if (pageTo && typeof loadPage === 'function') {
+//                 loadPage(pageTo);
+//             } else if (pageTo) {
+//                 window.location.href = pageTo;
+//             }
+
+//             // Đóng sidebar + overlay trên mobile
+//             if (window.innerWidth <= 900 && sidebar) {
+//                 sidebar.classList.remove('sidebar-open');
+//                 overlay && overlay.classList.remove('active');
+//             }
+//         });
+//     });
+
+//     // Click overlay để đóng
+//     if (overlay) {
+//         overlay.addEventListener('click', () => {
+//             if (!sidebar) return;
+//             sidebar.classList.remove('sidebar-open');
+//             overlay.classList.remove('active');
+//         });
+//     }
+// });
 
 
 // ========== FAKE CARD DATA (WIND / RAIN) ==========
@@ -419,3 +436,18 @@ document.addEventListener("DOMContentLoaded", () => {
         setInterval(pollDeviceState, 1000);
     }
 });
+
+function openWifiSettings() { // wifi.html mới dùng UI “Wi-Fi Settings” bạn vừa dán window.location.href = '/wifi.html'; // hoặc 'wifi.html' tuỳ server }
+    window.location.href = '/wifi.html'; // hoặc 'wifi.html' tuỳ server
+}
+
+
+function updateWifiDashboard(status, ssid) {
+    const statusEl = document.getElementById('wifiStatusDashboard');
+    const ssidEl = document.getElementById('wifiSsidDashboard');
+    const btn = document.querySelector('.wifi-config-btn');
+    if (statusEl) statusEl.textContent = status || '--'; if (ssidEl) ssidEl.textContent = ssid ? `SSID: ${ssid}` : 'SSID: --';
+    if (btn) { // Ví dụ: chỉ hiện nút khi không phải "Connected" 
+        btn.style.display = (status && status.toLowerCase() === 'connected') ? 'none' : 'inline-flex';
+    }
+}

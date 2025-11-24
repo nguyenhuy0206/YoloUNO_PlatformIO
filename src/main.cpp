@@ -33,7 +33,6 @@ void setup()
   // xTaskCreate(neo_blinky, "NeoPixel", 4096, NULL, 1, NULL);
   // xTaskCreate(lcd_display, "LCD", 4096, NULL, 1, NULL);
   // xTaskCreate(task_fan, "Fan", 4096, NULL, 1, NULL);
-  // xTaskCreate(task_fan, "Fan", 4096, NULL, 1, NULL);
   // xTaskCreate(task_pump, "Pump", 4096, NULL, 1, NULL);
   xTaskCreate(main_server_task, "MainServer", 8192, NULL, 1, NULL);
   xTaskCreate(coreiot_task, "CoreIOT", 8192, NULL, 1, NULL);

@@ -160,11 +160,11 @@ void coreiot_task(void *pvParameters)
   //   Serial.println("MQTT connect failed");
   //   vTaskDelay(pdMS_TO_TICKS(5000));
   // }
-  Serial.println("CoreIOT: Waiting for Internet connection...");
+  // Serial.println("CoreIOT: Waiting for Internet connection...");
   xSemaphoreTake(xBinarySemaphoreInternet, portMAX_DELAY); // Task bị chặn ở đây
 
   // Khi Semaphore được Give (tức là WiFi.status() == WL_CONNECTED):
-  Serial.println("CoreIOT: Internet connected! Starting cloud loop...");
+  // Serial.println("CoreIOT: Internet connected! Starting cloud loop...");
 
   // Đặt Semaphore lại
   xSemaphoreTake(xBinarySemaphoreInternet, 0);

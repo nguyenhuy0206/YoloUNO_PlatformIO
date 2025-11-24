@@ -13,10 +13,10 @@
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 
-    <script src="/script.js"></script>
 
 
     <style>
+        /* ====== DESKTOP / MẶC ĐỊNH ====== */
         body {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -39,6 +39,8 @@
             justify-content: space-between;
             padding: 0 25px;
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            /* để luôn nằm trên main một chút */
         }
 
         #sidebar {
@@ -104,65 +106,98 @@
             cursor: pointer;
         }
 
+        /* Nút menu (mặc định ẩn trên desktop) */
+        .menu-icon {
+            display: none;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .menu-icon .material-icons-outlined {
+            font-size: 28px;
+            color: #074580;
+        }
+
+        /* Overlay cho mobile (dùng loại trùng với style.css) */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 90;
+            display: none;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
 
         /* ======================================= */
-        /* ====== 1. TABLET (Small Desktop / iPad) - Dưới 1200px ====== */
+        /* ====== 1. TABLET (Dưới 1200px) ====== */
         /* ======================================= */
         @media screen and (max-width: 1200px) {
-            /* Sidebar vẫn giữ nguyên, nhưng main content chiếm ít không gian hơn */
-
-            body {
-                /* Chuyển biểu đồ thành 1 cột */
-            }
-
             .main-body {
                 grid-template-columns: 1fr;
             }
         }
 
+        /* ======================================= */
+        /* ====== 2. MOBILE / TABLET NHỎ (Dưới 900px) ====== */
+        /* ======================================= */
+        @media screen and (max-width: 900px) {
 
-        /* ======================================= */
-        /* ====== 2. MOBILE (Dưới 768px) ====== */
-        /* ======================================= */
-        @media screen and (max-width: 768px) {
+            /* Layout chính chỉ còn header + main */
             body {
-                /* Sidebar chuyển xuống thành hàng đầu tiên, Header và Main Content nằm dưới */
                 grid-template-columns: 1fr;
-                /* Chỉ còn 1 cột chính */
-                grid-template-rows: auto 70px 1fr;
-                /* Sắp xếp lại: Sidebar, Header, Main */
+                grid-template-rows: 70px 1fr;
                 grid-template-areas:
-                    "sidebar"
                     "header"
                     "main";
             }
 
+            /* Sidebar trở thành panel trượt, không còn nằm trong grid */
             #sidebar {
-                /* Sidebar mặc định ẩn đi trên mobile */
-                display: none;
-                /* Nếu muốn làm sidebar bật/tắt (như menu hamburger), cần thêm JS */
+                grid-area: auto;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 260px;
+                z-index: 100;
+                /* Ẩn đi mặc định */
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
             }
 
-            /* Hiển thị Header chiếm toàn bộ chiều rộng */
+            /* Khi có class sidebar-open sẽ trượt vào */
+            #sidebar.sidebar-open {
+                transform: translateX(0);
+            }
+
             header {
                 width: 100%;
             }
 
             #main-content {
                 padding: 20px 15px;
-                /* Giảm padding cho màn hình nhỏ */
             }
 
-            /* Card cảm biến: Tự động xếp chồng nếu không đủ 250px cho mỗi card */
+            /* Card cảm biến: xếp 1 cột */
             .main-cards {
                 grid-template-columns: 1fr;
-                /* Từng card chiếm 100% chiều rộng */
                 gap: 15px;
             }
 
-            /* Biểu đồ: Giữ nguyên 1 cột (đã set ở 1200px) */
+            /* Hiện nút menu trên mobile */
+            .menu-icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
         }
     </style>
+
 </head>
 
 <body>
@@ -222,7 +257,9 @@
     <!-- Header -->
     <header>
         <div class="header-left">
-
+            <button class="menu-icon" type="button" aria-label="Mở menu">
+                <span class="material-icons-outlined" aria-hidden="true">menu</span>
+            </button>
         </div>
         <div class="header-right">
             <span class="material-icons-outlined">notifications</span>
@@ -235,40 +272,95 @@
     <main id="main-content">
         <h2>Loading Dashboard...</h2>
     </main>
+    <script src="/script.js"></script>
 
     <script>
-        // Hàm load nội dung HTML
-        function loadPage(page) {
-            fetch(page)
-                .then(res => res.text())
-                .then(html => {
-                    document.getElementById("main-content").innerHTML = html;
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const menuBtn = document.querySelector('.menu-icon');
+            const items = document.querySelectorAll(".sidebar-list-item");
+            const main = document.getElementById("main-content");
 
-                    document.querySelectorAll(".sidebar-list-item").forEach(el => el.classList.remove("active"));
-                    document.querySelector(`.sidebar-list-item[data-page='${page}']`).classList.add("active");
+            // Hàm load nội dung HTML vào <main>
+            function loadPage(page) {
+                fetch(page)
+                    .then(res => res.text())
+                    .then(html => {
+                        if (!main) return;
+                        main.innerHTML = html;
 
-                    if (page === "dashboard.html") {
-                        setTimeout(() => {
-                            initDynamicCharts();
-                            updateEnvFromSensors();
-                            setInterval(updateEnvFromSensors, 3000);
-                        }, 50);
+                        // Active item sidebar
+                        document.querySelectorAll(".sidebar-list-item")
+                            .forEach(el => el.classList.remove("active"));
+                        const active = document.querySelector(`.sidebar-list-item[data-page='${page}']`);
+                        if (active) active.classList.add("active");
+
+                        // Nếu là dashboard -> khởi động chart + polling sensor
+                        if (page === "dashboard.html") {
+                            setTimeout(() => {
+                                if (typeof initDynamicCharts === "function") {
+                                    initDynamicCharts();
+                                }
+                                if (typeof updateEnvFromSensors === "function") {
+                                    updateEnvFromSensors();
+                                    setInterval(updateEnvFromSensors, 3000);
+                                }
+                            }, 50);
+                        }
+                    })
+                    .catch(err => console.error("loadPage error:", err));
+            }
+
+            function closeSidebar() {
+                if (!sidebar) return;
+                sidebar.classList.remove('sidebar-open');
+                if (overlay) overlay.classList.remove('active');
+            }
+
+            // Click item trong sidebar -> load page + auto đóng sidebar trên mobile
+            items.forEach(item => {
+                item.addEventListener("click", () => {
+                    const page = item.getAttribute("data-page");
+                    if (page) {
+                        loadPage(page);
+                    }
+
+                    // Nếu đang ở mobile → đóng sidebar + overlay
+                    if (window.innerWidth <= 900) {
+                        closeSidebar();
                     }
                 });
-        }
-
-
-        // Gán sự kiện click cho sidebar
-        document.querySelectorAll(".sidebar-list-item").forEach(item => {
-            item.addEventListener("click", () => {
-                const page = item.getAttribute("data-page");
-                loadPage(page);
             });
-        });
 
-        // Tải dashboard mặc định
-        loadPage("dashboard.html");
+            // Nút menu (hamburger) trên mobile
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('sidebar-open');
+                    if (overlay) {
+                        overlay.classList.toggle('active');
+                    }
+                });
+            }
+
+            // Click overlay → đóng
+            if (overlay) {
+                overlay.addEventListener('click', closeSidebar);
+            }
+
+            // Khi kéo rộng màn hình hơn 900px → chắc chắn tắt overlay + sidebar-open
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 900) {
+                    if (overlay) overlay.classList.remove('active');
+                    if (sidebar) sidebar.classList.remove('sidebar-open');
+                }
+            });
+
+            // Tải dashboard mặc định
+            loadPage("dashboard.html");
+        });
     </script>
+
 </body>
 
 </html>

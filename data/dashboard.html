@@ -24,20 +24,40 @@
             </div>
         </div>
     </div>
-</div>
 
-<div class="main-body">
-    <div class="chart temp-chart-card">
-        <div class="text-center">
-            <h2 class="card-title mb-3">Temp Over Time</h2>
-            <canvas id="tempChart" height="200"></canvas>
+    <!-- 📡 WIFI STATUS -->
+    <div class="card wifi-card">
+        <div class="card-inner">
+            <div class="icon-wrapper">
+                <span class="material-icons-outlined">wifi</span>
+            </div>
+            <div class="sensor-info">
+                <h2>WIFI STATUS</h2>
+                <h1 id="wifiStatusDashboard">--</h1>
+                <p class="sensor-sub" id="wifiSsidDashboard">SSID: --</p>
+            </div>
+        </div>
+
+        <!-- Nút config Wi-Fi -->
+        <div class="wifi-actions">
+            <button type="button" class="wifi-config-btn" onclick="openWifiSettings()">
+                Configure Wi-Fi
+            </button>
         </div>
     </div>
 
-    <div class="chart humidity-chart-card">
-        <div class="text-center">
-            <h2 class="card-title mb-3">Humidity Over Time</h2>
-            <canvas id="humidityChart" height="200"></canvas>
+
+    <!-- 🤖 TINYML LOG -->
+    <div class="card tinyml-card">
+        <div class="card-inner">
+            <div class="icon-wrapper">
+                <span class="material-icons-outlined">psychology</span>
+            </div>
+            <div class="sensor-info">
+                <h2>TINYML LOG</h2>
+                <h1 id="tinymlCurrentLabel">--</h1>
+                <p class="sensor-sub" id="tinymlSummary">No events yet</p>
+            </div>
         </div>
     </div>
 </div>

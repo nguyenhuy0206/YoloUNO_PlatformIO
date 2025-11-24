@@ -227,19 +227,9 @@ bool serveFile(const String &path)
 
 void handleRootPage()
 { // GET "/"
-  if (WiFi.status() == WL_CONNECTED)
+  if (!serveFile("/index.html"))
   {
-    if (!serveFile("/index.html"))
-    {
-      server.send(404, "text/plain", "index.html not found");
-    }
-  }
-  else
-  {
-    if (!serveFile("/wifi.html"))
-    {
-      server.send(404, "text/plain", "wifi.html not found");
-    }
+    server.send(404, "text/plain", "index.html not found");
   }
 }
 
