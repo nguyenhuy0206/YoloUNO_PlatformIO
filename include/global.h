@@ -34,4 +34,14 @@ extern bool fan_state;
 extern bool led1_state;
 extern bool led2_state;
 
+typedef struct
+{
+    QueueHandle_t xQueueSensor;
+    SemaphoreHandle_t xSemaphoreLCD;
+    SemaphoreHandle_t xSemaphoreLed;
+    SemaphoreHandle_t xSemaphoreNeoLed;
+    SemaphoreHandle_t xBinarySemaphoreInternet;
+    
+    SensorData data;
+} AppContext;
 #endif

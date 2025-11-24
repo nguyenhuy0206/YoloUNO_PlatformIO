@@ -231,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function openWifiSettings() { // wifi.html mới dùng UI “Wi-Fi Settings” bạn vừa dán window.location.href = '/wifi.html'; // hoặc 'wifi.html' tuỳ server }
-    window.location.href = '/wifi.html'; // hoặc 'wifi.html' tuỳ server
+    window.location.href = '/wifi.html';
 }
 
 

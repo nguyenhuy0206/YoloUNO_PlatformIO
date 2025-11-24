@@ -9,7 +9,7 @@ String wifi_password = "ACLAB2023";
 boolean isWifiConnected = false;
 SemaphoreHandle_t xBinarySemaphoreInternet;
 
-SensorData data;
+// SensorData data;
 SemaphoreHandle_t xSensorMutex;
 
 QueueHandle_t xQueueSensor;

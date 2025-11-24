@@ -14,34 +14,37 @@ void lcd_display(void *pvParameters)
     Serial.println("[LCD] Init done");
     vTaskDelay(pdMS_TO_TICKS(1000));
     SensorData recv;
+    AppContext *ctx = (AppContext *)pvParameters;
+
     while (1)
     {
-        if (xSemaphoreTake(xSensorMutex, portMAX_DELAY) == pdTRUE)
+        if (xSemaphoreTake(ctx->xSemaphoreLCD, portMAX_DELAY) == pdTRUE)
         {
-            recv = data;
-            float temperature = recv.temperature;
-            float humidity = recv.humidity;
-            xSemaphoreGive(xSensorMutex);
-            const char *state;
-            if (temperature >= 40 || humidity <= 30)
-                state = "CRITICAL";
-            else if (temperature >= 35 || humidity <= 40)
-                state = "WARNING";
-            else
-                state = "NORMAL";
+            if (xQueuePeek(ctx->xQueueSensor, &recv, 0) == pdTRUE)
+            {
+                recv = ctx->data;
+                float temperature = recv.temperature;
+                float humidity = recv.humidity;
+                const char *state;
+                if (temperature >= 40 || humidity <= 30)
+                    state = "CRITICAL";
+                else if (temperature >= 35 || humidity <= 40)
+                    state = "WARNING";
+                else
+                    state = "NORMAL";
 
-            // Cập nhật LCD
-            lcd.clear();
-            lcd.setCursor(0, 0);
-            lcd.print("State: ");
-            lcd.print(state);
+                lcd.clear();
+                lcd.setCursor(0, 0);
+                lcd.print("State: ");
+                lcd.print(state);
 
-            lcd.setCursor(0, 1);
-            char buffer[32];
-            snprintf(buffer, sizeof(buffer), "T:%.1f H:%.1f", temperature, humidity);
-            lcd.print(buffer);
+                lcd.setCursor(0, 1);
+                char buffer[32];
+                snprintf(buffer, sizeof(buffer), "T:%.1f H:%.1f", temperature, humidity);
+                lcd.print(buffer);
 
-            Serial.printf("[LCD] T=%.1f H=%.1f (%s)\n", temperature, humidity, state);
+                Serial.printf("[LCD] T=%.1f H=%.1f (%s)\n", temperature, humidity, state);
+            }
         }
         vTaskDelay(10000);
     }

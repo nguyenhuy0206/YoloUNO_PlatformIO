@@ -62,12 +62,13 @@ void tiny_ml_task(void *pvParameters)
         -0.24832214f  // shift for humidity
     };
     SensorData recv;
+    AppContext *ctx = (AppContext *)pvParameters;
+
     while (1)
     {
-        if (xSemaphoreTake(xSensorMutex, pdMS_TO_TICKS(1000)) == pdTRUE)
+        if (xQueuePeek(ctx->xQueueSensor, &recv, pdMS_TO_TICKS(1000)) == pdTRUE)
         {
-            recv = data;
-            xSemaphoreGive(xSensorMutex);
+            recv = ctx->data;
         }
         float ta = recv.temperature; // °C
         float rh = recv.humidity;    // %

@@ -14,25 +14,41 @@ void setup()
   Serial.begin(115200);
   Wire.begin(11, 12);
 
-  xQueueSensor = xQueueCreate(5, sizeof(SensorData));
-  xSensorMutex = xSemaphoreCreateMutex();
+  // xQueueSensor = xQueueCreate(5, sizeof(SensorData));
+  // xSensorMutex = xSemaphoreCreateMutex();
 
   xBinarySemaphoreInternet = xSemaphoreCreateBinary();
-  xSemaphoreLed = xSemaphoreCreateBinary();
-  xSemaphoreNeoLed = xSemaphoreCreateBinary();
-  xSemaphoreLCD = xSemaphoreCreateBinary();
+  // xSemaphoreLed = xSemaphoreCreateBinary();
+  // xSemaphoreNeoLed = xSemaphoreCreateBinary();
+  // xSemaphoreLCD = xSemaphoreCreateBinary();
 
-  xTaskCreate(temp_humi_monitor, "Sensor", 4096, NULL, 1, NULL);
+  // xTaskCreate(temp_humi_monitor, "Sensor", 4096, NULL, 1, NULL);
 
-  // LED task
-  xTaskCreate(led_blinky, "LED", 4096, NULL, 1, NULL);
-  xTaskCreate(neo_blinky, "NeoPixel", 4096, NULL, 1, NULL);
-  xTaskCreate(lcd_display, "LCD", 4096, NULL, 1, NULL);
-  // xTaskCreate(task_fan, "Fan", 4096, NULL, 1, NULL);
-  // xTaskCreate(task_pump, "Pump", 4096, NULL, 1, NULL);
-  xTaskCreate(main_server_task, "MainServer", 8192, NULL, 1, NULL);
-  xTaskCreate(coreiot_task, "CoreIOT", 8192, NULL, 1, NULL);
-  xTaskCreate(tiny_ml_task, "TinyML", 8192, NULL, 1, NULL);
+  // // LED task
+  // xTaskCreate(led_blinky, "LED", 4096, NULL, 1, NULL);
+  // xTaskCreate(neo_blinky, "NeoPixel", 4096, NULL, 1, NULL);
+  // xTaskCreate(lcd_display, "LCD", 4096, NULL, 1, NULL);
+  // // xTaskCreate(task_fan, "Fan", 4096, NULL, 1, NULL);
+  // // xTaskCreate(task_pump, "Pump", 4096, NULL, 1, NULL);
+  // xTaskCreate(main_server_task, "MainServer", 8192, NULL, 1, NULL);
+  // xTaskCreate(coreiot_task, "CoreIOT", 8192, NULL, 1, NULL);
+  // xTaskCreate(tiny_ml_task, "TinyML", 8192, NULL, 1, NULL);
+
+  static AppContext app; // static ở đây nhưng KHÔNG phải global file, chỉ dùng trong setup()
+
+  app.xQueueSensor = xQueueCreate(1, sizeof(SensorData));
+  app.xSemaphoreLCD = xSemaphoreCreateBinary();
+  app.xSemaphoreLed = xSemaphoreCreateBinary();
+  app.xSemaphoreNeoLed = xSemaphoreCreateBinary();
+  // Tạo task và truyền &app vào pvParameters
+  xTaskCreate(temp_humi_monitor, "Sensor", 4096, &app, 2, NULL);
+  xTaskCreate(led_blinky, "LED", 4096, &app, 1, NULL);
+  xTaskCreate(neo_blinky, "Neo", 4096, &app, 1, NULL);
+  xTaskCreate(lcd_display, "LCD", 4096, &app, 1, NULL);
+  xTaskCreate(main_server_task, "MainServer", 8192, &app, 1, NULL);
+  xTaskCreate(coreiot_task, "CoreIOT", 8192, &app, 1, NULL);
+  xTaskCreate(tiny_ml_task, "TinyML", 8192, &app, 1, NULL);
+  // }
 }
 
 void loop()

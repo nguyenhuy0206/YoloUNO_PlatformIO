@@ -10,7 +10,7 @@ bool isAPMode = true;
 Adafruit_NeoPixel strip(LED_COUNT, NEO_PIN, NEO_GRB + NEO_KHZ800);
 
 WebServer server(80);
-
+static AppContext *s_ctx = nullptr;
 unsigned long connect_start_ms = 0;
 bool connecting = false;
 void handleState()
@@ -176,8 +176,8 @@ void handleToggle()
 
 void handleSensors()
 {
-  float t = data.temperature;
-  float h = data.humidity;
+  float t = s_ctx->data.temperature;
+  float h = s_ctx->data.humidity;
   String json = "{\"temp\":" + String(t) + ",\"hum\":" + String(h) + "}";
   server.send(200, "application/json", json);
 }
@@ -375,7 +375,8 @@ void main_server_task(void *pvParameters)
   digitalWrite(PUMP_PIN, LOW);
   startAP();
   setupServer();
-
+  AppContext *ctx = (AppContext *)pvParameters;
+  s_ctx = ctx;
   while (1)
   {
     server.handleClient();

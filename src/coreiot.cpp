@@ -172,6 +172,8 @@ void coreiot_task(void *pvParameters)
   StaticJsonDocument<128> doc;
   char buffer[128];
   setup_coreiot();
+  AppContext *ctx = (AppContext *)pvParameters;
+
   while (1)
   {
     if (!client.connected())
@@ -179,10 +181,8 @@ void coreiot_task(void *pvParameters)
 
     client.loop();
 
-    if (xSemaphoreTake(xSensorMutex, portMAX_DELAY) == pdTRUE)
+    if (xQueuePeek(ctx->xQueueSensor, &recv, 0) == pdTRUE)
     {
-      recv = data;
-      xSemaphoreGive(xSensorMutex);
       doc.clear();
       doc["temperature"] = recv.temperature;
       doc["humidity"] = recv.humidity;

@@ -578,9 +578,9 @@ body {
             'main';
     }
 
-    #sidebar {
+    /* #sidebar {
         display: none;
-    }
+    } */
 
     .menu-icon {
         display: inline;

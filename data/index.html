@@ -33,17 +33,20 @@
 
         header {
             grid-area: header;
-            background: #fff;
+            /* Glass header đồng bộ với sidebar */
+            background: rgb(255, 255, 255);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 25px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            z-index: 50;
-            /* để luôn nằm trên main một chút */
+            padding: 0 20px;
+            z-index: 90;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+            color: #e5e7eb;
         }
-
-
 
         #main-content {
             grid-area: main;
@@ -51,50 +54,15 @@
             overflow-y: auto;
         }
 
-        .sidebar-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sidebar-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .sidebar-list-item {
-            padding: 12px 15px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            transition: background 0.3s ease;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sidebar-list-item:hover,
-        .sidebar-list-item.active {
-            background: #115f97;
-        }
-
-        .sidebar-list-item span {
-            font-size: 22px;
-        }
-
         .header-left span {
             font-size: 24px;
             margin-right: 10px;
-            color: #074580;
+            color: #e5e7eb;
         }
 
         .header-right span {
             margin-left: 15px;
-            color: #074580;
+            color: #e5e7eb;
             cursor: pointer;
         }
 
@@ -109,15 +77,16 @@
 
         .menu-icon .material-icons-outlined {
             font-size: 28px;
-            color: #074580;
+            color: #e5e7eb;
         }
 
-        /* Overlay cho mobile (dùng loại trùng với style.css) */
+        /* Overlay: chỉ định nhẹ, phần chính ở style.css */
         .sidebar-overlay {
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.45);
-            z-index: 90;
+            z-index: 80;
+            /* THẤP hơn #sidebar (110 trong style.css) */
             display: none;
         }
 
@@ -126,16 +95,7 @@
         }
 
         /* ======================================= */
-        /* ====== 1. TABLET (Dưới 1200px) ====== */
-        /* ======================================= */
-        @media screen and (max-width: 1200px) {
-            .main-body {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* ======================================= */
-        /* ====== 2. MOBILE / TABLET NHỎ (Dưới 900px) ====== */
+        /* ====== 1. TABLET / MOBILE (Dưới 900px) ====== */
         /* ======================================= */
         @media screen and (max-width: 900px) {
 
@@ -146,25 +106,6 @@
                 grid-template-areas:
                     "header"
                     "main";
-            }
-
-            /* Sidebar trở thành panel trượt, không còn nằm trong grid */
-            #sidebar {
-                grid-area: auto;
-                position: fixed;
-                top: 0;
-                left: 0;
-                height: 100vh;
-                width: 260px;
-                z-index: 100;
-                /* Ẩn đi mặc định */
-                transform: translateX(-100%);
-                transition: transform 0.25s ease;
-            }
-
-            /* Khi có class sidebar-open sẽ trượt vào */
-            #sidebar.sidebar-open {
-                transform: translateX(0);
             }
 
             header {
@@ -189,6 +130,7 @@
             }
         }
     </style>
+
 
 </head>
 
