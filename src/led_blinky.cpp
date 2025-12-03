@@ -59,6 +59,11 @@ void led_blinky(void *pvParameters)
   {
     if (xSemaphoreTake(ctx->xSemaphoreLed, portMAX_DELAY) == pdTRUE)
     {
+      if (currentMode == MANUAL)
+      {
+        Serial.println("[LED] MANUAL mode - skipping blink");
+        continue;
+      }
 
       if (xQueuePeek(ctx->xQueueSensor, &recv, 0) == pdTRUE)
       {

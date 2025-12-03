@@ -1,6 +1,6 @@
 #include "global.h"
-float glob_temperature = 30;
-float glob_humidity = 70;
+// float glob_temperature = 30;
+// float glob_humidity = 70;
 
 String ssid = "ESP32-MH";
 String password = "12345678";
@@ -21,3 +21,5 @@ bool led1_state = false;
 bool led2_state = false;
 bool pump_state = false;
 bool fan_state = false;
+
+Mode currentMode = AUTO;

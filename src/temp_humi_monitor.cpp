@@ -104,21 +104,21 @@ void temp_humi_monitor(void *pvParameters)
             temperature = humidity = -1;
         }
 
-        // Ghi vào ctx->data (không bắt buộc, chỉ nếu muốn dùng)
         ctx->data.temperature = temperature;
         ctx->data.humidity = humidity;
 
-        // Gửi qua queue (nên dùng local để tránh lẫn)
         SensorData packet;
         packet.temperature = temperature;
         packet.humidity = humidity;
 
         xQueueOverwrite(ctx->xQueueSensor, &packet);
 
-        // Đánh thức các task khác
         xSemaphoreGive(ctx->xSemaphoreLCD);
-        xSemaphoreGive(ctx->xSemaphoreLed);
-        xSemaphoreGive(ctx->xSemaphoreNeoLed);
+        if (currentMode == AUTO)
+        {
+            xSemaphoreGive(ctx->xSemaphoreLed);
+            xSemaphoreGive(ctx->xSemaphoreNeoLed);
+        }
 
         Serial.printf("[Sensor] Sent: T=%.1f H=%.1f\n", temperature, humidity);
 

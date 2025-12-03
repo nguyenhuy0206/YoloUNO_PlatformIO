@@ -33,6 +33,13 @@ extern bool pump_state;
 extern bool fan_state;
 extern bool led1_state;
 extern bool led2_state;
+typedef enum
+{
+    AUTO = 0,
+    MANUAL = 1
+} Mode;
+
+extern Mode currentMode;
 
 typedef struct
 {
@@ -41,7 +48,7 @@ typedef struct
     SemaphoreHandle_t xSemaphoreLed;
     SemaphoreHandle_t xSemaphoreNeoLed;
     SemaphoreHandle_t xBinarySemaphoreInternet;
-    
+
     SensorData data;
 } AppContext;
 #endif

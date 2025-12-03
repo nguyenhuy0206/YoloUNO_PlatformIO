@@ -62,6 +62,7 @@ void handleSet()
     Serial.print("FAN -> ");
     Serial.println(fan_state ? "ON" : "OFF");
   }
+  currentMode = MANUAL;
 
   // --- 4. Trả về JSON (cập nhật tất cả trạng thái) ---
   String json = "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") +
@@ -112,6 +113,7 @@ void handleSetAll()
   }
   Serial.print("ALL DEVICES -> ");
   Serial.println(value ? "ON" : "OFF");
+  currentMode = MANUAL;
 
   // Trả về JSON chứa status của tất cả thiết bị
   String json = "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") +
@@ -169,6 +171,7 @@ void handleToggle()
     led2_state = !led2_state;
     Serial.println("YOUR CODE TO CONTROL LED2");
   }
+  currentMode = MANUAL;
   server.send(200, "application/json",
               "{\"led1\":\"" + String(led1_state ? "ON" : "OFF") +
                   "\",\"led2\":\"" + String(led2_state ? "ON" : "OFF") + "\"}");

@@ -13,6 +13,11 @@ void neo_blinky(void *pvParameters)
     {
         if (xSemaphoreTake(ctx->xSemaphoreNeoLed, portMAX_DELAY) == pdTRUE)
         {
+            if (currentMode == MANUAL)
+            {
+                Serial.println("[NeoPixel] MANUAL mode - skipping changing color");
+                continue;
+            }
             if (xQueuePeek(ctx->xQueueSensor, &recv, 0) == pdTRUE)
             {
                 recv = ctx->data;
