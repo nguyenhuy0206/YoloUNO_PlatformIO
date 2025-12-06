@@ -9,6 +9,7 @@
 #include "coreiot.h"
 #include "lcd_display.h"
 #include "control.h"
+#include "task_rgb_led.h"
 void setup()
 {
   Serial.begin(115200);
@@ -24,12 +25,13 @@ void setup()
   app.xSemaphoreNeoLed = xSemaphoreCreateBinary();
 
   xTaskCreate(temp_humi_monitor, "Sensor", 4096, &app, 2, NULL);
-  xTaskCreate(led_blinky, "LED", 4096, &app, 1, NULL);
-  xTaskCreate(neo_blinky, "Neo", 4096, &app, 1, NULL);
-  xTaskCreate(lcd_display, "LCD", 4096, &app, 1, NULL);
+  // xTaskCreate(led_blinky, "LED", 4096, &app, 1, NULL);
+  // xTaskCreate(neo_blinky, "Neo", 4096, &app, 1, NULL);
+  // xTaskCreate(lcd_display, "LCD", 4096, &app, 1, NULL);
   xTaskCreate(main_server_task, "MainServer", 8192, &app, 1, NULL);
-  xTaskCreate(coreiot_task, "CoreIOT", 8192, &app, 1, NULL);
-  xTaskCreate(tiny_ml_task, "TinyML", 8192, &app, 1, NULL);
+  // xTaskCreate(coreiot_task, "CoreIOT", 8192, &app, 1, NULL);
+  // xTaskCreate(tiny_ml_task, "TinyML", 8192, &app, 1, NULL);
+  xTaskCreate(task_rgb_led, "RGB LED", 4096, &app, 1, NULL);
 }
 
 void loop()

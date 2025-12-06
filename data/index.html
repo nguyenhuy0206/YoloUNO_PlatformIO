@@ -2,297 +2,758 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IoT Dashboard</title>
-
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="style.css">
-
-
-
+    <meta charset="UTF-8">
+    <title>Aquarium Control Dashboard</title>
     <style>
-        /* ====== DESKTOP / MẶC ĐỊNH ====== */
-        body {
-            display: grid;
-            grid-template-columns: 260px 1fr;
-            grid-template-rows: 70px 1fr;
-            grid-template-areas:
-                "sidebar header"
-                "sidebar main";
-            margin: 0;
-            height: 100vh;
-            font-family: 'Open Sans', sans-serif;
-            color: #1e293b;
-            background: #f4f8fb;
+        * {
+            box-sizing: border-box;
         }
 
-        header {
-            grid-area: header;
-            /* Glass header đồng bộ với sidebar */
-            background: rgb(255, 255, 255);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            margin: 0;
+            background: #f5f7fa;
+            color: #111827;
+        }
 
+        /* Top navigation bar */
+        .navbar {
+            height: 52px;
+            background: #0f172a;
+            color: #e5e7eb;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 20px;
-            z-index: 90;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
-            color: #e5e7eb;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
-        #main-content {
-            grid-area: main;
-            padding: 30px;
-            overflow-y: auto;
+        .navbar-title {
+            font-weight: 600;
+            font-size: 1rem;
         }
 
-        .header-left span {
-            font-size: 24px;
-            margin-right: 10px;
-            color: #e5e7eb;
+        .navbar-status {
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .header-right span {
-            margin-left: 15px;
-            color: #e5e7eb;
+        .badge {
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+        }
+
+        .badge-ok {
+            background: #16a34a33;
+            color: #bbf7d0;
+            border: 1px solid #16a34a;
+        }
+
+        .badge-alert {
+            background: #f9731633;
+            color: #fed7aa;
+            border: 1px solid #f97316;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+            background: #22c55e;
+        }
+
+        /* Layout */
+        .page {
+            padding: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin: 0 0 16px;
+            font-size: 1.2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 12px 14px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .status-dot-big {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-ok {
+            background: #22c55e;
+        }
+
+        .status-warn {
+            background: #eab308;
+        }
+
+        .status-bad {
+            background: #ef4444;
+        }
+
+        .section-title {
+            margin: 12px 0 8px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .control-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .control-name {
+            font-weight: 600;
+        }
+
+        .control-status {
+            font-size: 0.8rem;
+            color: #555;
+        }
+
+        /* Toggle switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
             cursor: pointer;
-        }
-
-        /* Nút menu (mặc định ẩn trên desktop) */
-        .menu-icon {
-            display: none;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            padding: 4px;
-        }
-
-        .menu-icon .material-icons-outlined {
-            font-size: 28px;
-            color: #e5e7eb;
-        }
-
-        /* Overlay: chỉ định nhẹ, phần chính ở style.css */
-        .sidebar-overlay {
-            position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.45);
-            z-index: 80;
-            /* THẤP hơn #sidebar (110 trong style.css) */
+            background-color: #d1d5db;
+            transition: .2s;
+            border-radius: 999px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .2s;
+            border-radius: 999px;
+        }
+
+        input:checked+.slider {
+            background-color: #22c55e;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Event log panel (now full-width under controls) */
+        .log-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 12px 14px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            max-height: 260px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .log-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .log-body {
+            font-size: 0.8rem;
+            color: #374151;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            overflow-y: auto;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 6px;
+        }
+
+        .log-item {
+            padding: 4px 0;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: #6b7280;
+            font-size: 0.75rem;
+            margin-right: 6px;
+        }
+
+        .log-tag {
+            font-size: 0.7rem;
+            padding: 1px 6px;
+            border-radius: 999px;
+            margin-right: 4px;
+        }
+
+        .tag-alert {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .tag-control {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        /* Simple form inputs for Wi-Fi card */
+        .wifi-form {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 6px;
+            font-size: 0.8rem;
+        }
+
+        .wifi-form label {
+            font-weight: 500;
+        }
+
+        .wifi-form input {
+            width: 100%;
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            font-size: 0.8rem;
+        }
+
+        .wifi-form button {
+            margin-top: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: #0f766e;
+            color: #ecfeff;
+            align-self: flex-start;
+        }
+
+        .wifi-form button:disabled {
+            opacity: 0.7;
+            cursor: default;
+        }
+
+        .wifi-status-text {
+            font-size: 0.8rem;
+            color: #4b5563;
+            margin-top: 4px;
+        }
+
+        /* Wi-Fi collapsible card */
+        .wifi-card-toggle {
+            cursor: pointer;
+        }
+
+        .wifi-body {
+            margin-top: 8px;
+        }
+
+        .wifi-body.hidden {
             display: none;
         }
 
-        .sidebar-overlay.active {
-            display: block;
+        .wifi-chevron {
+            font-size: 0.8rem;
+            color: #6b7280;
+            transition: transform 0.2s;
         }
 
-        /* ======================================= */
-        /* ====== 1. TABLET / MOBILE (Dưới 900px) ====== */
-        /* ======================================= */
-        @media screen and (max-width: 900px) {
-
-            /* Layout chính chỉ còn header + main */
-            body {
-                grid-template-columns: 1fr;
-                grid-template-rows: 70px 1fr;
-                grid-template-areas:
-                    "header"
-                    "main";
-            }
-
-            header {
-                width: 100%;
-            }
-
-            #main-content {
-                padding: 20px 15px;
-            }
-
-            /* Card cảm biến: xếp 1 cột */
-            .main-cards {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            /* Hiện nút menu trên mobile */
-            .menu-icon {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-            }
+        .wifi-chevron.collapsed {
+            transform: rotate(-90deg);
         }
     </style>
-
-
 </head>
 
 <body>
-    <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar-expanded" aria-label="Main sidebar">
-        <div class="sidebar-header">
-            <div class="brand">
-                <span class="material-icons-outlined brand-icon" aria-hidden="true">memory</span>
-                <div class="brand-text">
-                    <div class="brand-name">IOT LAB</div>
-                    <div class="brand-sub">ESP32 • IoT</div>
+    <!-- Top nav -->
+    <div class="navbar">
+        <div class="navbar-title">
+            Ocean Simulation Monitoring – Control Panel
+        </div>
+        <div class="navbar-status">
+            <span><span class="status-dot"></span>System: NORMAL</span>
+            <span class="badge badge-ok">No active critical alerts</span>
+        </div>
+    </div>
+
+    <div class="page">
+        <h1>Aquarium Control Dashboard</h1>
+
+        <!-- Wi-Fi configuration section (collapsible) -->
+        <div class="section-title">Wi-Fi Configuration</div>
+        <div class="control-card" style="max-width:420px;margin-bottom:16px;">
+            <div class="control-header wifi-card-toggle" id="wifiToggleHeader">
+                <div class="control-name">ESP32-S3 Wi-Fi</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div id="wifiStatusBadge" class="badge badge-ok">Wi-Fi: UNKNOWN</div>
+                    <span id="wifiChevron" class="wifi-chevron collapsed">▾</span>
                 </div>
+            </div>
+
+            <div class="wifi-body hidden" id="wifiBody">
+                <div class="control-status" id="wifiStatusDetail">
+                    Trying to read current Wi-Fi status from device...
+                </div>
+
+                <form id="wifiForm" class="wifi-form">
+                    <div>
+                        <label for="wifiSsid">SSID</label>
+                        <input type="text" id="wifiSsid" name="ssid" placeholder="Your Wi-Fi network name" required>
+                    </div>
+                    <div>
+                        <label for="wifiPassword">Password</label>
+                        <input type="password" id="wifiPassword" name="password" placeholder="Wi-Fi password" required>
+                    </div>
+                    <button type="submit" id="wifiSaveBtn">Save &amp; Connect</button>
+                    <div class="wifi-status-text" id="wifiActionMsg"></div>
+                </form>
             </div>
         </div>
 
-        <nav class="sidebar-nav" role="navigation">
-            <ul class="sidebar-list">
-                <li class="sidebar-list-item" data-page="dashboard.html">
-                    <span class="sidebar-icon material-icons-outlined" aria-hidden="true">dashboard</span>
-                    <span class="sidebar-label">Dashboard</span>
-                </li>
 
-                <li class="sidebar-list-item" data-page="control.html">
-                    <span class="sidebar-icon material-icons-outlined" aria-hidden="true">lightbulb</span>
-                    <span class="sidebar-label">Device Control</span>
-                </li>
+        <!-- Sensor metrics -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">
+                    <span class="status-dot-big status-ok"></span>Temperature
+                </div>
+                <div class="card-value">27.4&nbsp;°C</div>
+                <div style="font-size:0.75rem;color:#666;">Target: 26–28 °C</div>
+            </div>
+            <div class="card">
+                <div class="card-title">
+                    <span class="status-dot-big status-ok"></span>pH
+                </div>
+                <div class="card-value">8.10</div>
+                <div style="font-size:0.75rem;color:#666;">Target: 7.8–8.4</div>
+            </div>
+            <div class="card">
+                <div class="card-title">
+                    <span class="status-dot-big status-ok"></span>Salinity
+                </div>
+                <div class="card-value">33.0&nbsp;‰</div>
+                <div style="font-size:0.75rem;color:#666;">Target: 32–35 ‰</div>
+            </div>
+            <div class="card">
+                <div class="card-title">
+                    <span class="status-dot-big status-ok"></span>Water Level
+                </div>
+                <div class="card-value">OK</div>
+                <div style="font-size:0.75rem;color:#666;">Float switch: CLOSED</div>
+            </div>
+            <div class="card">
+                <div class="card-title">
+                    <span class="status-dot-big status-ok"></span>Light Intensity
+                </div>
+                <div class="card-value">820&nbsp;lux</div>
+                <div style="font-size:0.75rem;color:#666;">Day mode</div>
+            </div>
+        </div>
 
-                <li class="sidebar-list-item" data-page="cloud.html">
-                    <span class="sidebar-icon material-icons-outlined" aria-hidden="true">cloud</span>
-                    <span class="sidebar-label">Cloud Monitor</span>
-                </li>
+        <!-- Control panel -->
+        <div class="section-title">Control Panel</div>
+        <div class="controls">
+            <!-- PUMP: map tới PUMP_PIN qua /set?led=pump -->
+            <div class="control-card">
+                <div class="control-header">
+                    <div class="control-name">Circulation Pump</div>
+                    <label class="switch">
+                        <input type="checkbox" class="device-toggle" data-device="Circulation Pump" data-led="pump"
+                            checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="control-status">Mode: automatic • Feedback: OK</div>
+            </div>
 
+            <!-- FAN: đổi label thành Cooling Fan, map tới FAN_PIN qua /set?led=fan -->
+            <div class="control-card">
+                <div class="control-header">
+                    <div class="control-name">Cooling Fan</div>
+                    <label class="switch">
+                        <input type="checkbox" class="device-toggle" data-device="Cooling Fan" data-led="fan" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="control-status">Mode: automatic • Feedback: OK</div>
+            </div>
+
+            <!-- RGB LED chính: map tới LED1_PIN qua /set?led=1 -->
+            <div class="control-card">
+                <div class="control-header">
+                    <div class="control-name">RGB LED Lighting</div>
+                    <label class="switch">
+                        <input type="checkbox" class="device-toggle" data-device="RGB LED Lighting" data-led="1"
+                            checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="control-status">Mode: day • Intensity linked to schedule</div>
+            </div>
+
+            <!-- Phần dưới giữ nguyên, hiện chưa map đến pin thật (dosing / ATO tương lai) -->
+            <div class="control-card">
+                <div class="control-header">
+                    <div class="control-name">Dosing Pump</div>
+                    <label class="switch">
+                        <input type="checkbox" class="device-toggle" data-device="Dosing Pump">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="control-status">Mode: guarded • Blocked in alert/safe state</div>
+            </div>
+
+            <div class="control-card">
+                <div class="control-header">
+                    <div class="control-name">Auto Top-Off (ATO)</div>
+                    <label class="switch">
+                        <input type="checkbox" class="device-toggle" data-device="Auto Top-Off">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="control-status">Float sensor active • ATO allowed</div>
+            </div>
+        </div>
+
+        <!-- NeoPixel color control -->
+        <div class="control-card">
+            <div class="control-header">
+                <div class="control-name">Reef NeoPixel LED</div>
+            </div>
+            <div class="control-status" style="margin-bottom:6px;">
+                Select color for onboard NeoPixel status LED.
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;">
+                <input type="color" id="neoColorPicker" value="#00aaff"
+                    style="width:42px;height:24px;border:none;padding:0;cursor:pointer;">
+                <button type="button" id="neoApplyBtn" style="padding:4px 10px;border-radius:999px;border:none;
+                                   background:#1d4ed8;color:#eff6ff;font-size:0.8rem;cursor:pointer;">
+                    Set NeoPixel Color
+                </button>
+            </div>
+        </div>
+
+        <!-- Event log under controls -->
+        <div class="section-title">Event Log</div>
+        <div class="log-card">
+            <div class="log-header">
+                <div class="log-title">Recent Events</div>
+                <div style="font-size:0.75rem;color:#6b7280;">Newest first</div>
+            </div>
+            <ul id="logList" class="log-body">
+                <!-- Sample sensor threshold events -->
+                <li class="log-item">
+                    <span class="log-time">12:03:11</span>
+                    <span class="log-tag tag-alert">ALERT</span>
+                    Temperature exceeded 28&nbsp;°C, alert state entered.
+                </li>
+                <li class="log-item">
+                    <span class="log-time">11:47:52</span>
+                    <span class="log-tag tag-alert">ALERT</span>
+                    pH dropped below 7.8, dosing suspended.
+                </li>
+                <li class="log-item">
+                    <span class="log-time">11:30:05</span>
+                    <span class="log-tag tag-control">CONTROL</span>
+                    System started, all devices initialised in NORMAL_OPERATION.
+                </li>
             </ul>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="user">
-                <img src="https://i.pravatar.cc/40" alt="User avatar" class="user-avatar">
-                <div class="user-info">
-                    <div class="user-name">Admin</div>
-                    <div class="user-role">Operator</div>
-                </div>
-            </div>
-            <div class="sidebar-meta">
-                <span class="version">v1.0</span>
-            </div>
         </div>
-    </aside>
-
-    <!-- overlay for mobile -->
-    <div id="sidebar-overlay" class="sidebar-overlay" tabindex="-1"></div>
-
-    <!-- Header -->
-    <header>
-        <div class="header-left">
-            <button class="menu-icon" type="button" aria-label="Mở menu">
-                <span class="material-icons-outlined" aria-hidden="true">menu</span>
-            </button>
-        </div>
-        <div class="header-right">
-            <span class="material-icons-outlined">notifications</span>
-            <span class="material-icons-outlined">email</span>
-            <span class="material-icons-outlined">account_circle</span>
-        </div>
-    </header>
-
-    <!-- Nội dung chính (load động) -->
-    <main id="main-content">
-        <h2>Loading Dashboard...</h2>
-    </main>
-    <script src="/script.js"></script>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            const menuBtn = document.querySelector('.menu-icon');
-            const items = document.querySelectorAll(".sidebar-list-item");
-            const main = document.getElementById("main-content");
+        // Simple logger for device toggles
+        function addLogEntry(type, message) {
+            const logList = document.getElementById('logList');
+            const li = document.createElement('li');
+            li.className = 'log-item';
 
-            // Hàm load nội dung HTML vào <main>
-            function loadPage(page) {
-                fetch(page)
-                    .then(res => res.text())
-                    .then(html => {
-                        document.getElementById("main-content").innerHTML = html;
+            const now = new Date();
+            const timeStr = now.toTimeString().slice(0, 8); // HH:MM:SS
 
-                        document.querySelectorAll(".sidebar-list-item")
-                            .forEach(el => el.classList.remove("active"));
-                        document.querySelector(`.sidebar-list-item[data-page='${page}']`)
-                            .classList.add("active");
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.textContent = timeStr;
 
-                        // Nếu là dashboard -> khởi động sensor + wifi + tinyml
-                        if (page === "dashboard.html") {
-                            setTimeout(() => {
-                                if (typeof updateEnvFromSensors === "function") {
-                                    updateEnvFromSensors();
-                                    setInterval(updateEnvFromSensors, 3000);
-                                }
-                                if (typeof updateWifiInfo === "function") {
-                                    updateWifiInfo();
-                                }
-                                if (typeof updateTinyMLInfo === "function") {
-                                    updateTinyMLInfo();
-                                    setInterval(updateTinyMLInfo, 5000);
-                                }
-                            }, 50);
-                        }
-                    });
+            const tagSpan = document.createElement('span');
+            tagSpan.className = 'log-tag ' + (type === 'ALERT' ? 'tag-alert' : 'tag-control');
+            tagSpan.textContent = type;
+
+            li.appendChild(timeSpan);
+            li.appendChild(tagSpan);
+            li.appendChild(document.createTextNode(' ' + message));
+
+            // prepend (newest first)
+            if (logList.firstChild) {
+                logList.insertBefore(li, logList.firstChild);
+            } else {
+                logList.appendChild(li);
             }
+        }
 
+        // Điều khiển thiết bị thật qua /set và /set_all
+        document.querySelectorAll('.device-toggle').forEach(function (input) {
+            input.addEventListener('change', async function () {
+                const name = this.getAttribute('data-device') || 'Device';
+                const ledKey = this.getAttribute('data-led');   // "pump", "fan", "1", ...
+                const stateOn = this.checked;
+                const stateStr = stateOn ? 'on' : 'off';
 
-            function closeSidebar() {
-                if (!sidebar) return;
-                sidebar.classList.remove('sidebar-open');
-                if (overlay) overlay.classList.remove('active');
-            }
+                // Log yêu cầu từ UI
+                addLogEntry('CONTROL', name + ' switched ' + stateStr.toUpperCase() + ' by user.');
 
-            // Click item trong sidebar -> load page + auto đóng sidebar trên mobile
-            items.forEach(item => {
-                item.addEventListener("click", () => {
-                    const page = item.getAttribute("data-page");
-                    if (page) {
-                        loadPage(page);
+                // Nếu control này chưa gắn backend (không có data-led) thì chỉ log thôi
+                if (!ledKey) {
+                    return;
+                }
+
+                try {
+                    let url;
+
+                    // Nếu sau này bạn muốn có 1 toggle "All devices", gắn data-led="all" rồi dùng /set_all
+                    if (ledKey === 'all') {
+                        url = `/set_all?state=${encodeURIComponent(stateStr)}`;
+                    } else {
+                        // Gọi /set?led=1|2|pump|fan&state=on|off
+                        url = `/set?led=${encodeURIComponent(ledKey)}&state=${encodeURIComponent(stateStr)}`;
                     }
 
-                    // Nếu đang ở mobile → đóng sidebar + overlay
-                    if (window.innerWidth <= 900) {
-                        closeSidebar();
+                    const res = await fetch(url, { method: 'GET' });
+                    if (!res.ok) {
+                        throw new Error('HTTP ' + res.status);
                     }
-                });
-            });
 
-            // Nút menu (hamburger) trên mobile
-            if (menuBtn && sidebar) {
-                menuBtn.addEventListener('click', () => {
-                    sidebar.classList.toggle('sidebar-open');
-                    if (overlay) {
-                        overlay.classList.toggle('active');
-                    }
-                });
-            }
-
-            // Click overlay → đóng
-            if (overlay) {
-                overlay.addEventListener('click', closeSidebar);
-            }
-
-            // Khi kéo rộng màn hình hơn 900px → chắc chắn tắt overlay + sidebar-open
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 900) {
-                    if (overlay) overlay.classList.remove('active');
-                    if (sidebar) sidebar.classList.remove('sidebar-open');
+                    // Backend /set và /set_all trả JSON trạng thái; nếu cần bạn có thể parse:
+                    // const data = await res.json();
+                    // và sync lại UI theo data. Ở đây chỉ cần log là đủ.
+                    addLogEntry('CONTROL', name + ' is now ' + stateStr.toUpperCase() + ' (ack from device).');
+                } catch (err) {
+                    // Nếu lỗi, log ALERT và rollback toggle về trạng thái cũ
+                    addLogEntry('ALERT', 'Failed to control ' + name + '. Reverting switch.');
+                    this.checked = !stateOn;
                 }
             });
-
-            // Tải dashboard mặc định
-            loadPage("dashboard.html");
         });
-    </script>
 
+
+        // =============================
+        // Wi-Fi configuration handling
+        // =============================
+
+        const wifiStatusBadge = document.getElementById('wifiStatusBadge');
+        const wifiStatusDetail = document.getElementById('wifiStatusDetail');
+        const wifiForm = document.getElementById('wifiForm');
+        const wifiSsidInput = document.getElementById('wifiSsid');
+        const wifiPasswordInput = document.getElementById('wifiPassword');
+        const wifiActionMsg = document.getElementById('wifiActionMsg');
+        const wifiSaveBtn = document.getElementById('wifiSaveBtn');
+
+        function setWifiBadge(status) {
+            // status: "connected", "connecting", "failed" (lowercase từ ESP32)
+            wifiStatusBadge.classList.remove('badge-ok', 'badge-alert');
+
+            if (!status) status = 'failed';
+
+            const s = status.toLowerCase();
+            if (s === 'connected') {
+                wifiStatusBadge.classList.add('badge-ok');
+                wifiStatusBadge.textContent = 'Wi-Fi: CONNECTED';
+            } else if (s === 'connecting') {
+                wifiStatusBadge.classList.add('badge-alert');
+                wifiStatusBadge.textContent = 'Wi-Fi: CONNECTING...';
+            } else {
+                wifiStatusBadge.classList.add('badge-alert');
+                wifiStatusBadge.textContent = 'Wi-Fi: DISCONNECTED';
+            }
+        }
+
+        async function fetchWifiStatus() {
+            try {
+                // Dùng /wifi_info trong firmware
+                const res = await fetch('/wifi_info');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                // data: { status: "connected|connecting|failed", ssid: "...", ip: "..." }
+
+                setWifiBadge(data.status);
+
+                let detail = `Status: ${data.status || 'unknown'}`;
+                if (data.ssid) {
+                    detail += ` • SSID: ${data.ssid}`;
+                }
+                if (data.ip) {
+                    detail += ` • IP: ${data.ip}`;
+                }
+                wifiStatusDetail.textContent = detail;
+
+                // Prefill SSID nếu đang có
+                if (data.ssid && !wifiSsidInput.value) {
+                    wifiSsidInput.value = data.ssid;
+                }
+            } catch (err) {
+                setWifiBadge('failed');
+                wifiStatusDetail.textContent = 'Failed to fetch Wi-Fi status from device.';
+            }
+        }
+
+        // Gọi 1 lần khi load và poll mỗi 10s
+        fetchWifiStatus();
+        setInterval(fetchWifiStatus, 10000);
+
+        wifiForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const ssid = wifiSsidInput.value.trim();
+            const password = wifiPasswordInput.value;
+
+            if (!ssid || !password) {
+                wifiActionMsg.textContent = 'SSID and password are required.';
+                return;
+            }
+
+            wifiSaveBtn.disabled = true;
+            wifiActionMsg.textContent = 'Sending configuration to device...';
+            setWifiBadge('connecting');
+
+            try {
+                // Firmware dùng GET /connect?ssid=...&pass=...
+                const url = `/connect?ssid=${encodeURIComponent(ssid)}&pass=${encodeURIComponent(password)}`;
+
+                const res = await fetch(url, { method: 'GET' });
+                if (!res.ok) {
+                    throw new Error('HTTP ' + res.status);
+                }
+
+                const txt = await res.text(); // "Connecting...."
+                wifiActionMsg.textContent = txt || 'Configuration sent. Device is connecting...';
+
+                addLogEntry('CONTROL', `Wi-Fi configuration updated (SSID="${ssid}") by user.`);
+
+                // Đợi 3s rồi đọc lại trạng thái
+                setTimeout(fetchWifiStatus, 3000);
+            } catch (err) {
+                wifiActionMsg.textContent = 'Failed to send Wi-Fi settings to device.';
+                setWifiBadge('failed');
+                addLogEntry('ALERT', 'Wi-Fi configuration update failed.');
+            } finally {
+                wifiSaveBtn.disabled = false;
+            }
+        });
+        const wifiBody = document.getElementById('wifiBody');
+        const wifiToggleHeader = document.getElementById('wifiToggleHeader');
+        const wifiChevron = document.getElementById('wifiChevron');
+
+        if (wifiToggleHeader && wifiBody && wifiChevron) {
+            wifiToggleHeader.addEventListener('click', function () {
+                const isHidden = wifiBody.classList.toggle('hidden');
+                wifiChevron.classList.toggle('collapsed', isHidden);
+            });
+        }
+
+        // Điều khiển màu NeoPixel qua /neopixel?hex=#RRGGBB
+        const neoPicker = document.getElementById('neoColorPicker');
+        const neoBtn = document.getElementById('neoApplyBtn');
+
+        if (neoPicker && neoBtn) {
+            neoBtn.addEventListener('click', async function () {
+                const hex = neoPicker.value; // dạng "#RRGGBB"
+                addLogEntry('CONTROL', 'User requested NeoPixel color ' + hex);
+
+                try {
+                    const url = `/neopixel?hex=${encodeURIComponent(hex)}`;
+                    const res = await fetch(url, { method: 'GET' });
+
+                    if (!res.ok) {
+                        throw new Error('HTTP ' + res.status);
+                    }
+
+                    addLogEntry('CONTROL', 'NeoPixel color set to ' + hex + ' (ack from device).');
+                } catch (err) {
+                    addLogEntry('ALERT', 'Failed to set NeoPixel color.');
+                }
+            });
+        }
+
+    </script>
 </body>
 
 </html>

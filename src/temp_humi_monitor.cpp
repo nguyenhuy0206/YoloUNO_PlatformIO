@@ -122,6 +122,6 @@ void temp_humi_monitor(void *pvParameters)
 
         Serial.printf("[Sensor] Sent: T=%.1f H=%.1f\n", temperature, humidity);
 
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(10000));
     }
 }

@@ -6,8 +6,9 @@
 #include "control.h"
 #include "coreiot.h"
 #include "tinyml.h"
+#include "task_rgb_led.h"
 bool isAPMode = true;
-Adafruit_NeoPixel strip(LED_COUNT, NEO_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel NeoPixel(NUM_PIXELS, PIN_NEO_PIXEL, NEO_GRB + NEO_KHZ800);
 
 WebServer server(80);
 static AppContext *s_ctx = nullptr;
@@ -108,8 +109,8 @@ void handleSetAll()
   // ---------------------------------
   if (!value)
   {
-    strip.clear();
-    strip.show();
+    NeoPixel.clear();
+    NeoPixel.show();
   }
   Serial.print("ALL DEVICES -> ");
   Serial.println(value ? "ON" : "OFF");
@@ -134,7 +135,7 @@ uint32_t hexToUint32(String hex)
   uint8_t g = (number >> 8) & 0xFF;
   uint8_t b = number & 0xFF;
 
-  return strip.Color(r, g, b); // Trả về màu theo định dạng NeoPixel (GRB)
+  return NeoPixel.Color(r, g, b); // Trả về màu theo định dạng NeoPixel (GRB)
 }
 
 void handleNeopixel()
@@ -148,8 +149,8 @@ void handleNeopixel()
     uint32_t color = hexToUint32(hex);
 
     // Đặt màu cho LED đầu tiên (LED 0)
-    strip.setPixelColor(0, color);
-    strip.show(); // Hiển thị màu
+    NeoPixel.setPixelColor(0, color);
+    NeoPixel.show(); // Hiển thị màu
 
     // Nếu bạn có một semaphore để báo hiệu cho task neo_blinky dừng lại, hãy sử dụng nó ở đây
     // Ví dụ: xSemaphoreTake(xSemaphoreNeoLed, 0);
@@ -284,19 +285,6 @@ void setupServer()
   // ==== Trang chính & các subpage ====
   server.on("/", HTTP_GET, handleRootPage);
 
-  server.on("/dashboard.html", HTTP_GET, []()
-            { serveFile("/dashboard.html"); });
-  server.on("/control.html", HTTP_GET, []()
-            { serveFile("/control.html"); });
-  server.on("/cloud.html", HTTP_GET, []()
-            { serveFile("/cloud.html"); });
-  server.on("/system_log.html", HTTP_GET, []()
-            { serveFile("/system_log.html"); });
-  server.on("/wifi.html", HTTP_GET, []()
-            { serveFile("/wifi.html"); });
-  server.on("/login.html", HTTP_GET, []()
-            { serveFile("/login.html"); });
-
   // ==== Static assets: CSS / JS / JSON ====
   server.on("/style.css", HTTP_GET, []()
             { serveFile("/style.css"); });
@@ -370,8 +358,8 @@ void main_server_task(void *pvParameters)
   pinMode(FAN_PIN, OUTPUT);
   pinMode(PUMP_PIN, OUTPUT);
 
-  strip.begin(); // Khởi tạo NeoPixel
-  strip.show();
+  NeoPixel.begin(); // Khởi tạo NeoPixel
+  NeoPixel.show();
   digitalWrite(LED1_PIN, LOW);
   digitalWrite(LED2_PIN, LOW);
   digitalWrite(FAN_PIN, LOW);
@@ -411,6 +399,17 @@ void main_server_task(void *pvParameters)
         isAPMode = false;
         connecting = false;
         setupServer();
+        configTime(7 * 3600, 0, "pool.ntp.org", "time.nist.gov");
+
+        Serial.println("[NTP] Waiting for time...");
+        struct tm timeinfo;
+        while (!getLocalTime(&timeinfo))
+        {
+          Serial.print(".");
+          delay(500);
+        }
+
+        Serial.println("\n[NTP] Time synced!");
       }
       else if (millis() - connect_start_ms > 10000)
       { // timeout 10s
