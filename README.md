@@ -16,9 +16,9 @@ Team Members
 ------------------------------------------------------------
 | Name                | Student ID | Email                     | Role / Responsibility                         |
 |---------------------|------------|----------------------------|-----------------------------------------------|
-| Nguyen Minh Huy     | 22Cxxxxx   | huy@example.com            | Task 1–3: LED, LCD Display, Semaphore Logic   |
-| Bui Quoc Bao        | 22Cxxxxx   | bao@example.com            | Task 4 & 6: Web Server + CoreIoT Integration  |
-| Nguyen Tan Huy     | 22Cxxxxx   | dang@example.com           | Task 5: TinyML Model + Evaluation + Report    |
+| Nguyen Minh Huy     | 2211221   | huy@example.com            | Task 1–3: LED, LCD Display, Semaphore Logic   |
+| Bui Quoc Bao        | 2152411   | bao@example.com            | Task 4 & 6: Web Server + CoreIoT Integration  |
+| Nguyen Tan Huy     | 2252258   | dang@example.com           | Task 5: TinyML Model + Evaluation + Report    |
 
 ------------------------------------------------------------
 1. Project Overview
